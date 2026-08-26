@@ -1,0 +1,24 @@
+motor_driver:
+  ros__parameters:
+    # ---- robot geometry (measured 2026-08-26, see HARDWARE.md) ----
+    wheel_radius: 0.0318                     # circumference 0.20 m
+    wheel_separation: 0.155                  # measured 2026-08-26 wheel-center distance
+    encoder_ticks_per_revolution: 334        # 4x quadrature, measured at WHEEL
+    gear_ratio: 1.0                          # encoder already at wheel level
+
+    # ---- limits ----
+    max_pwm: 40                              # % duty, conservative until tested
+    max_linear_velocity: 0.5                 # m/s
+    max_angular_velocity: 2.0                # rad/s
+    linear_deadband: 0.01                    # m/s, below -> stop
+
+    # ---- control ----
+    pwm_frequency: 200                       # Hz software PWM (verified)
+    cmd_vel_topic: /cmd_vel
+    cmd_vel_timeout: 0.5                     # s, no update -> stop
+
+    # ---- pins (verified, do NOT change) ----
+    left_motor_fwd: PH6                       # left wheel forward = IN2 PWM
+    left_motor_rev: PH4                       # left wheel backward = IN1 PWM
+    right_motor_fwd: PH5                      # right wheel forward = IN2 PWM
+    right_motor_rev: PL10                     # right wheel backward = IN1 PWM

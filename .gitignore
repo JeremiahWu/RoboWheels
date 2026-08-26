@@ -1,0 +1,11 @@
+# third-party drivers with their own git history (keep out of this repo)
+drivers/
+
+# colcon build artifacts
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# python
+__pycache__/
+*.pyc
