@@ -1,0 +1,60 @@
+imu_publisher:
+  ros__parameters:
+    i2c_bus: 0                              # i2c-0 (verified)
+    i2c_address: 0x68                       # MPU6050 WHO_AM_I (verified)
+    rate: 30.0                              # Hz publish rate (30Hz: i2c read ~3ms,
+                                            # 50Hz cost the node 23% CPU; executor
+                                            # wake overhead is ~3-4ms each on this
+                                            # board, so fewer wakes = less CPU)
+    frame_id: imu_link
+    # MPU6050 register setup: wake (PLL on X gyro), DLPF 98Hz, ±2g, ±250 deg/s
+    dlpf_config: 0x02
+    accel_range: 0x00                       # 0=±2g, 16384 LSB/g
+    gyro_range: 0x00                        # 0=±250deg/s, 131 LSB/(deg/s)
+
+joy_controller:
+  ros__parameters:
+    joy_topic: /joy
+    cmd_out_topic: /cmd_vel_joy
+    mode_topic: /robowheels/mode            # std_msgs/String: "manual" | "avoid"
+    axis_linear: 1                          # Xbox360: left stick Y (up = -1)
+    axis_angular: 0                         # Xbox360: left stick X (right = +1)
+    invert_linear: false                    # measured 2026-08-27: up (positive axis) = forward
+    invert_angular: false
+    scale_linear: 0.5                       # m/s at full stick
+    scale_angular: 2.0                      # rad/s at full stick
+    deadzone: 0.05                          # fraction of full range
+    enable_button: 5                        # Xbox360 RB: hold to drive, release = stop
+    mode_button: 0                          # Xbox360 A: press toggles manual/avoid
+    joy_timeout: 0.5                        # s, no /joy -> publish stop
+    default_mode: manual
+
+obstacle_avoid:
+  ros__parameters:
+    joy_cmd_topic: /cmd_vel_joy
+    cmd_out_topic: /cmd_vel
+    scan_topic: /scan
+    imu_topic: /imu/data_raw
+    mode_topic: /robowheels/mode
+    rate: 20.0                              # Hz control loop
+    # forward sector scaling (linear velocity)
+    forward_angle: 0.52                     # rad, |theta| < this = forward sector
+    stop_dist: 0.15                         # m, obstacle closer in front -> v=0
+    slow_dist: 0.50                         # m, obstacle beyond -> no slowdown
+    # side sectors (steering bias)
+    side_angle_min: 0.52                    # rad
+    side_angle_max: 1.40                    # rad
+    repulsion_gain: 0.35                    # rad/s per (1/m) distance difference
+    max_steer_bias: 1.5                     # rad/s cap on repulsion steering
+    # reverse sector (driving backward)
+    rear_angle: 1.05                        # rad, |theta| > pi-rear_angle = rear
+    rear_stop_dist: 0.15
+    # IMU safety
+    tilt_limit: 0.35                        # rad (~20deg) total tilt vs gravity axis -> stop
+    spin_limit: 3.0                         # rad/s, gyro z beyond commanded -> stop
+    max_linear: 0.5                         # m/s clamp
+    max_angular: 2.0                        # rad/s clamp
+    # sensor timeouts (s): stale sensor -> stop (avoid mode only)
+    scan_timeout: 0.5
+    imu_timeout: 0.5
+    joy_timeout: 0.5

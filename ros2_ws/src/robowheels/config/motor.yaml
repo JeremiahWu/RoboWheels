@@ -22,3 +22,18 @@ motor_driver:
     left_motor_rev: PH4                       # left wheel backward = IN1 PWM
     right_motor_fwd: PH5                      # right wheel forward = IN2 PWM
     right_motor_rev: PL10                     # right wheel backward = IN1 PWM
+
+    # ---- encoders (verified, do NOT change) ----
+    # NOTE cross-wired labels: physical LEFT wheel = PL2/PL3, RIGHT = PD24/PD23
+    left_encoder_a: PL2
+    left_encoder_b: PL3
+    right_encoder_a: PD24
+    right_encoder_b: PD23
+    right_encoder_inverted: true            # measured 2026-08-27: forward -> negative counts (cross-wired)
+    left_ticks_per_meter: 1679.0              # 4x, measured 2026-08-26
+    right_ticks_per_meter: 1656.0             # 4x, measured 2026-08-26
+
+    # ---- odometry ----
+    odom_frame: odom
+    base_frame: base_link
+    odom_rate: 50.0                           # Hz
