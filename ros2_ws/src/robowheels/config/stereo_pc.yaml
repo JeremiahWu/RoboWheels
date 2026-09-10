@@ -1,0 +1,40 @@
+stereo_pointcloud_node:
+  ros__parameters:
+    # ---- topics ----
+    left_topic: /image_left_raw
+    right_topic: /image_right_raw
+    points_topic: /stereo/points
+    depth_topic: /stereo/depth
+    disparity_topic: /stereo/disparity
+    publish_disparity: true
+
+    # ---- calibration (mipi_cam 816x960 GDC 输出平面) ----
+    # 来源：mipi_cam 驱动日志 rectify [f,cx,cy,baseline] =
+    # [511.53, 539.059, 681.172, 0.06889]（1088x1280 平面），
+    # 816x960 输出 = 精确 0.75 倍缩放 → 全部乘 0.75。
+    fx: 383.65
+    fy: 383.65
+    cx: 404.29
+    cy: 510.88
+    baseline: 0.06889          # m（GS130WI 基线，驱动日志实测）
+
+    # ---- 立体匹配 ----
+    matcher: sgbm              # sgbm | bm
+    downsample: 2              # 匹配分辨率 = 原图 / downsample（提速）
+    num_disparities: 96        # 0.3m 处视差 ~88px；调大看更近物体
+    block_size: 7
+    min_disparity: 0
+    uniqueness_ratio: 10
+    speckle_window: 100
+    speckle_range: 2
+    min_depth: 0.2             # m
+    max_depth: 5.0             # m
+    cloud_step: 2              # 点云每 N 像素取 1 点
+    sync_slop: 0.05            # s，左右目时间戳容差
+
+    # ---- 坐标系 ----
+    cloud_frame: camera_link   # 与 rviz 配置 Fixed Frame 一致
+    imu_frame: imu0
+    publish_tf: true
+    # T_imu<-camera_link（左目，光轴 x 右 y 下 z 前）
+    T_imu_cam: [-0.035, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]

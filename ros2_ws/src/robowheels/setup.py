@@ -15,13 +15,19 @@ setup(
             'config/joy.yaml',
             'config/astra_rgb.yaml',
             'config/gs130_vio.yaml',
+            'config/stereo_pc.yaml',
+        ]),
+        ('share/' + package_name + '/config/rviz', [
+            'config/rviz/perception.rviz',
         ]),
         ('share/' + package_name + '/launch', [
             'launch/motor.launch.py',
             'launch/joy.launch.py',
             'launch/astra_camera.launch.py',
             'launch/gs130.launch.py',
+            'launch/stereo_pointcloud.launch.py',
             'launch/bringup.launch.py',
+            'launch/rviz_perception.launch.py',
         ]),
         ('share/' + package_name + '/udev', [
             'udev/99-robowheels.rules',
@@ -38,6 +44,7 @@ setup(
             'motor_driver = robowheels.motor_driver:main',
             'astra_rgb_node = robowheels.astra_rgb_node:main',
             'gs130_vio_bridge = robowheels.gs130_vio_bridge:main',
+            'stereo_pointcloud_node = robowheels.stereo_pointcloud_node:main',
         ],
     },
 )

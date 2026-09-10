@@ -123,6 +123,25 @@ GPIO（`/sys/class/gpio/gpioN`）。全部可用 BOARD 引脚：3,5,7,8,10,11,12
 - 后续 VIO（VINS-Fusion / FAST-LIVO / OpenVINS）消费 cam0/cam1/imu0；
   标定参数从 `/cam*/camera_info` 读取（双目为鱼眼模型，VIO 配置要匹配）
 
+## 双目点云（stereo_pointcloud_node，2026-09-10 实测）
+
+- 本包自研 CPU 立体匹配节点（不依赖 hobot_stereonet）：
+  `ros2 launch robowheels stereo_pointcloud.launch.py`
+  （自启 mipi_cam 816x960 nv12 gdc；与 gs130.launch.py / run_stereo.sh 互斥）
+- 标定来源（mipi_cam 驱动日志 log_level:=info，实测提取）：
+  - 矫正平面 rectify `[f, cx, cy, baseline] = [511.53, 539.059, 681.172, 0.06889]`
+    （1088x1280；baseline 与规格书 70mm 吻合）
+  - 816x960 GDC 输出 = 精确 0.75 缩放 → 输出平面 `f=383.65, cx=404.29, cy=510.88`
+    （config/stereo_pc.yaml；如果云形变先怀疑 fx/fy）
+- 实测性能（SGBM, downsample=2, ndisp=96）：**~3.7Hz**，~12K 点/帧，
+  CPU 2.5 核；深度中位 0.83m / max 2.03m（室内场景合理）
+  - 提速：downsample 3~4 / matcher: bm；提精度：downsample 1 + ndisp 112
+- 发布：/stereo/points（x/y/z/intensity, frame camera_link）、
+  /stereo/depth（32FC1 米）、/stereo/disparity、静态 TF imu0→camera_link
+  （左目位于 imu -x 0.035m）
+- 备选 hobot_stereonet（BPU，~30fps）话题 /StereoNetNode/stereonet_pointcloud2
+  已真机验证，rviz 配置里默认关闭可对比
+
 ## Astra Pro 奥比中光（USB，实测）
 
 - lsusb：`2bc5:0501 Astra Pro HD Camera`（RGB）+ `2bc5:0403 Astra Pro`

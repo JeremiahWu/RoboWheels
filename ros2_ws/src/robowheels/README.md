@@ -10,6 +10,7 @@ RoboWheels 两轮差速底盘在 RDK X5 上的完整控制与感知节点。
 | `motor_driver` | AT8236 双通道软 PWM + 编码器 4x 解码 + /odom + TF + /wheel_speeds + /joint_states，/cmd_vel watchdog | ✅ 启动/话题验证（电机运动测试待实车） |
 | `astra_rgb_node` | Astra Pro RGB（UVC/OpenCV，无 SDK 依赖）→ /astra/rgb/image_raw + camera_info | ✅ 30fps 出图 |
 | `gs130_vio_bridge` | GS130WI（mipi_cam 驱动后）：左右目 nv12→mono8 → /cam0 /cam1 image_raw + camera_info、/imu_data→/imu0、静态 TF | ✅ 双目+IMU 全部出数据 |
+| `stereo_pointcloud_node` | GS130WI 双目 SGBM 立体匹配 → /stereo/points + /stereo/depth（32FC1 米）+ /stereo/disparity + TF；参数 config/stereo_pc.yaml（含实测标定） | ✅ 真机 3.7Hz 实测 |
 | `orbbec_camera`（官方 apt 包） | Astra IR/深度 | ❌ SDK v2 与老 Astra Pro 固件不兼容（实测），备选见 tools/setup_astra_ir.sh |
 
 手柄链：joy_node + teleop_twist_joy → /cmd_vel（✅ 已验证启动，DragonRise 手柄）。

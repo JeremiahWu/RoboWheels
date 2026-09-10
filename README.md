@@ -14,7 +14,7 @@
 | 底盘 | TT 电机 ×2，AT8236 双通道驱动，正交编码器 ×2 | `motor_driver`（软 PWM + 4x 解码 + odom） | ✅ 节点验证，电机映射待实车确认 |
 | 控制 | 手柄（DragonRise） | joy + teleop_twist_joy → `/cmd_vel` | ✅ 已验证 |
 | 感知① | Orbbec Astra Pro（USB，底盘上方，机械臂动作感知） | `astra_rgb_node`（UVC RGB 出图） | ✅ 30fps 出图 |
-| 感知② | RDK GS130WI 双目 IMU（MIPI，底盘底部，VIO+ESDF planning 预留） | `gs130_vio_bridge` → `/cam0` `/cam1` `/imu0` | ✅ 双目+IMU 全部出数据 |
+| 感知② | RDK GS130WI 双目 IMU（MIPI，底盘底部，VIO+ESDF planning 预留） | `gs130_vio_bridge` → `/cam0` `/cam1` `/imu0`；`stereo_pointcloud_node` → `/stereo/points` `/stereo/depth` | ✅ 双目+IMU 全部出数据；✅ 自研 SGBM 点云 3.7Hz 实测 |
 | 机械臂 | LewanSoul 总线舵机（LX-15D / LD-27MG，40PIN 8/10 脚） | UART 测试工具已备 | ⏸ 通信排查暂停（见 HARDWARE.md） |
 
 ## 硬件连接速查（40PIN BOARD 脚号）
@@ -95,6 +95,42 @@ docker run -it --rm --privileged --network host \
 `--privileged` + `/dev` + `/sys` 挂载是 GPIO/UART/MIPI 相机/IMU 的前提。
 镜像源默认清华（可 `--build-arg` 覆盖）。详见 `Dockerfile` 注释与包级 README。
 
+## RViz 可视化（红外 + 双目点云）
+
+`config/rviz/perception.rviz` 预置了感知视图（话题与 QoS 均按真机实测配置，
+全部 RELIABLE）：
+
+- 双目点云 `/stereo/points`（本包 SGBM 节点，Fixed Frame: `camera_link`）
+- 双目深度图 `/stereo/depth`（32FC1 米）
+- 红外 `/astra/ir/image_raw`
+- hobot_stereonet（BPU）点云/深度/矫正图、Astra RGB / VIO cam0
+  （默认关闭，面板里手动开启对比）
+
+```bash
+# PC 上（与 X5 同一 ROS_DOMAIN_ID，配置按实际网络设置）：
+rviz2 -d ros2_ws/src/robowheels/config/rviz/perception.rviz
+# 或 X5 本机（装了 rviz2 + 显示器）：
+ros2 launch robowheels rviz_perception.launch.py
+```
+
+点云数据源二选一（**都会独占 mipi 相机，不要同时跑**）：
+
+```bash
+# ① 本包自研节点（OpenCV SGBM，实测 ~3.7Hz @ 下采样2，CPU 2.5 核；
+#    调速改 config/stereo_pc.yaml 的 downsample / matcher: bm）
+ros2 launch robowheels stereo_pointcloud.launch.py
+
+# ② hobot_stereonet（BPU 加速 ~30fps @640x352，精度更高）
+bash /opt/tros/humble/share/hobot_stereonet/script/run_stereo.sh
+```
+
+⚠️ 注意：
+- 红外当前**无数据**：官方 SDK 驱动与本机 Astra Pro 固件不兼容
+  （详见「已知问题」），配置已就绪，等 IR 驱动恢复后自动出图；
+  现在能直接看的是 Astra RGB（UVC 那路）与双目相关画面
+- Astra 深度点云（`/astra/depth/points`）同样要等 SDK 驱动恢复，
+  本包不自行生成（单目 RGB 无法产生度量级点云）
+
 ## 节点与话题
 
 | 节点 | 订阅 | 发布 |
@@ -102,6 +138,7 @@ docker run -it --rm --privileged --network host \
 | `motor_driver` | `/cmd_vel` (Twist) | `/odom`、`/tf`（odom→base_footprint）、`/wheel_speeds`、`/joint_states` |
 | `joy_node` + `teleop_twist_joy` | 手柄设备 | `/joy` → `/cmd_vel` |
 | `gs130_vio_bridge` | `/image_left_raw` `/image_right_raw` `/imu_data` | `/cam0/image_raw` `/cam1/image_raw`（mono8 816x640）、`/cam0|cam1/camera_info`、`/imu0`（~100Hz） |
+| `stereo_pointcloud_node` | `/image_left_raw` `/image_right_raw` | `/stereo/points`（PointCloud2，frame `camera_link`）、`/stereo/depth`（32FC1 米）、`/stereo/disparity`、静态 TF `imu0→camera_link` |
 | `astra_rgb_node` | UVC `/dev/video0` | `/astra/rgb/image_raw` + camera_info |
 | `mipi_cam`（tros 驱动） | GS130WI MIPI | `/image_combine_raw`、`/image_left_raw`、`/image_right_raw`、`/imu_data` |
 
@@ -121,6 +158,7 @@ docker run -it --rm --privileged --network host \
 - **舵机 UART（8/10 脚）**：板侧 UART1 可用，但 DT 开启了 RS485 模式且控制器无应答，按需恢复排查（步骤见 HARDWARE.md）
 - **硬件 PWM**：4 个电机脚有硬件 PWM 功能但被引脚复用占用（需 srpi-config 释放），当前软件 PWM 200Hz
 - **VIO**：GS130 话题已按 VINS/FAST-LIVO 规范发布，双目为鱼眼模型（标定随 camera_info），VIO 算法配置需与之一致
+- **双目点云**：本包 SGBM 节点为 CPU 实现（~3.7Hz），跑 ESDF planning 若需更高帧率/精度，切换 hobot_stereonet（BPU，~30fps）
 
 ## 安全红线（每次改动都要遵守）
 
