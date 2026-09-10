@@ -1,0 +1,17 @@
+[project]
+name = "robowheels"
+version = "0.2.0"
+description = "RoboWheels RDK X5 runtime python dependencies (managed by uv)"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    # RDK X5 GPIO library. Not published on PyPI - vendored in
+    # third_party/hobot_gpio (copied from the RDK OS image, see NOTICE.md).
+    "hobot-gpio==0.0.2",
+    # bus-servo / UART test tools
+    "pyserial>=3.5",
+    # workspace build (ROS ament python packages)
+    "colcon-common-extensions>=0.3.0",
+]
+
+[tool.uv.sources]
+hobot-gpio = { path = "third_party/hobot_gpio" }

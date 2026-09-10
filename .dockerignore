@@ -1,0 +1,18 @@
+# build context hygiene (models/ alone is >100 MB of CAD files)
+.git
+models
+prompt.md
+*.bin
+solver.bin
+
+# colcon artifacts (rebuilt inside the image)
+ros2_ws/build
+ros2_ws/install
+ros2_ws/log
+
+# python / uv
+__pycache__
+**/__pycache__
+*.pyc
+.venv
+.uv

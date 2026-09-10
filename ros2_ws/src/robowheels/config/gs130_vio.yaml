@@ -1,0 +1,14 @@
+gs130_vio_bridge:
+  ros__parameters:
+    # swap left/right assignment to cam0/cam1 if needed
+    flip_eyes: false
+    # stereo baseline (m) - GS130WI (IMU version) is 70 mm
+    baseline: 0.07
+    imu_frame: imu0
+    cam0_frame: cam0
+    cam1_frame: cam1
+    publish_static_tf: true
+    # T_imu<-cam, optical convention (x right, y down, z forward);
+    # cameras at +/- baseline/2 along the imu x axis
+    T_imu_cam0: [-0.035, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+    T_imu_cam1: [0.035, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]

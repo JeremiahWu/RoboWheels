@@ -1,63 +1,79 @@
 #!/usr/bin/env python3
-"""Encoder readout test (phase 3)
+"""Encoder readout test for RDK X5 (replaces the Orange Pi 3 LTS version).
 
-Pins (from wiring table, do not change):
-  left  encoder: LA=PD24 (wPi5), LB=PD23 (wPi7)
-  right encoder: RA=PL2  (wPi3), RB=PL3  (wPi4)
+Pins (BOARD numbering, RDK X5 40PIN, do not change):
+  E1A=11, E1B=13   (encoder 1)
+  E2A=15, E2B=16   (encoder 2)
+Which encoder pair belongs to which wheel has NOT been verified on the
+X5 wiring yet - `watch` mode tells you (rotate one wheel by hand).
 
 Modes:
   watch  - poll all 4 pins, print level changes (verify which encoder
            pair follows which wheel; rotate wheels by hand)
-  count  - count rising edges on each pin until Enter is pressed.
-           Use it to measure ticks per revolution: rotate one wheel
-           EXACTLY one full turn, then press Enter.
-           ticks_per_rev = edges / 4  (quadrature 4x: both channels,
-           both edges counted by the final driver)
+  count  - count rising edges on each pin for a 30 s window.
+           Rotate one wheel EXACTLY N full turns inside the window.
+           ticks_per_rev = edges * 4  (4x quadrature, both edges of
+           both channels counted by the driver)
+  spin   - drive ONE motor channel (A or B) at low PWM while sampling
+           encoder edges; shows which encoder counts and the count SIGN
+           for the driven direction (odom sign calibration)
+  drive  - drive BOTH channels forward (straight line) while counting;
+           measure the distance traveled, then
+             ticks_per_meter(4x) = 4 * edges / distance_m
 """
+import os
 import sys
 import time
 
-import OPi.GPIO as GPIO
+import Hobot.GPIO as GPIO
 
-LA, LB = "PD24", "PD23"
-RA, RB = "PL2", "PL3"
-PINS = {"LA": LA, "LB": LB, "RA": RA, "RB": RB}
+ENC = {'E1A': 11, 'E1B': 13, 'E2A': 15, 'E2B': 16}
+CH = {'A': {'in1': 27, 'in2': 29}, 'B': {'in1': 31, 'in2': 33}}
+ALL_PINS = tuple(ENC.values()) + (27, 29, 31, 33)
+PWM_FREQ_HZ = 200
+POLL_S = 0.001  # 1 kHz floor; the real loop spins much faster
 
-# Verified motor mapping (see HARDWARE.md):
-#   left wheel  = B channel, fwd = PH6 PWM (IN2), rev = PH4 PWM (IN1)
-#   right wheel = A channel, fwd = PH5 PWM (IN2), rev = PL10 PWM (IN1)
-MOTOR = {"L": {"fwd": "PH6", "rev": "PH4"},
-         "R": {"fwd": "PH5", "rev": "PL10"}}
-MOTOR_ALL = ("PH6", "PH4", "PH5", "PL10")
 
-POLL_S = 0.001  # 1 kHz polling, plenty for hand rotation
+def _sysfs_gpio_num(pin):
+    return int(GPIO.all_pin_data['BOARD'][int(pin)].gpio_id)
+
+
+def _open(pin, writable):
+    return os.open('/sys/class/gpio/gpio%d/value' % _sysfs_gpio_num(pin),
+                   os.O_WRONLY if writable else os.O_RDONLY)
 
 
 def setup():
     GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.SUNXI)
-    for p in PINS.values():
+    GPIO.setmode(GPIO.BOARD)
+    for p in ENC.values():
         try:
             GPIO.setup(p, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        except (AttributeError, ValueError):
+        except (AttributeError, ValueError, RuntimeError):
             GPIO.setup(p, GPIO.IN)
     print(">> encoders setup done", flush=True)
-    for name, p in PINS.items():
-        print(f">> {name}({p}) idle = {GPIO.input(p)}", flush=True)
+    in_fds = {n: _open(p, False) for n, p in ENC.items()}
+    print(">> idle levels:", {n: os.pread(fd, 8, 0)[0] for n, fd in in_fds.items()},
+          flush=True)
+    return in_fds
 
 
-def watch(seconds):
+def read_level(fd):
+    return os.pread(fd, 8, 0)[0] == 0x31
+
+
+def watch(seconds, in_fds):
     print(f">> watching {seconds}s - rotate wheels by hand; "
           "any level change is printed", flush=True)
     for i in (3, 2, 1):
         print(f">> start in {i}s ...", flush=True)
         time.sleep(1.0)
-    state = {n: GPIO.input(p) for n, p in PINS.items()}
+    state = {n: read_level(fd) for n, fd in in_fds.items()}
     print(f">> GO initial: {state}", flush=True)
     t0 = time.time()
     while time.time() - t0 < seconds:
-        for n, p in PINS.items():
-            v = GPIO.input(p)
+        for n, fd in in_fds.items():
+            v = read_level(fd)
             if v != state[n]:
                 print(f">> t={time.time()-t0:.2f}s  {n} -> {v}", flush=True)
                 state[n] = v
@@ -65,109 +81,89 @@ def watch(seconds):
     print(">> watch done", flush=True)
 
 
-def count(windows=3, window=8.0, turns=1):
-    """Measure ticks per wheel revolution.
-
-    Each window: user rotates ONE wheel EXACTLY `turns` full turns.
-    ticks_per_rev (4x quadrature) = 4 x rising edges of one channel
-    (A and B rising edges should be equal; 4x = both edges of both
-    channels = 4 per encoder cycle).
-    """
-    print(f">> {windows} counting windows of {window:.0f}s each.", flush=True)
-    print(f">> Rotate ONE wheel EXACTLY {turns} full turn(s) inside EACH "
-          "window.", flush=True)
-    for w in range(windows):
-        for i in (3, 2, 1):
-            print(f">> window {w+1}/{windows}: start in {i}s ...", flush=True)
-            time.sleep(1.0)
-        counts = {n: 0 for n in PINS}
-        state = {n: GPIO.input(p) for n, p in PINS.items()}
-        print(f">> GO window {w+1}: counting...", flush=True)
-        t0 = time.time()
-        while time.time() - t0 < window:
-            for n, p in PINS.items():
-                v = GPIO.input(p)
-                if v == 1 and state[n] == 0:
-                    counts[n] += 1
-                state[n] = v
-            time.sleep(POLL_S)
-        tpr_l = 4 * counts["LA"] / turns
-        tpr_r = 4 * counts["RA"] / turns
-        print(f">> window {w+1} rising edges: {counts}", flush=True)
-        print(f">>   ticks/rev 4x: LA pair = {tpr_l:.1f}, "
-              f"RA pair = {tpr_r:.1f}", flush=True)
+def count(turns, in_fds):
+    """Rising edges per pin while the user rotates ONE wheel N turns."""
+    print(f">> rotate ONE wheel EXACTLY {turns} full turn(s), "
+          "then press Enter", flush=True)
+    input(">> press Enter to start ...")
+    counts = {n: 0 for n in ENC}
+    state = {n: read_level(fd) for n, fd in in_fds.items()}
+    print(">> counting for 30 s ...", flush=True)
+    t0 = time.time()
+    while time.time() - t0 < 30.0:
+        for n, fd in in_fds.items():
+            v = read_level(fd)
+            if v and not state[n]:
+                counts[n] += 1
+            state[n] = v
+        time.sleep(POLL_S)
+    print(f">> rising edges: {counts}", flush=True)
+    for pair in (('E1A', 'E1B'), ('E2A', 'E2B')):
+        tpr = 4 * counts[pair[0]] / turns
+        print(f">>   {pair[0]}+{pair[1]} ticks/rev (4x) = {tpr:.1f}",
+              flush=True)
 
 
-def spin(wheel, duty, seconds):
-    """Drive ONE wheel at low PWM while sampling encoder edges.
-
-    Tight single loop: 200Hz soft PWM + max-rate edge sampling.
-    Prints cumulative rising edges per pin every second.
-    User: put a tape mark on the wheel and count exact revolutions
-    during the run; ticks/rev = 4*edges / reported_revs.
-    Also shows the count SIGN for the driven direction (odom sign).
-    """
-    duty = min(max(duty, 5.0), 40.0)
-    pwm_pin = MOTOR[wheel]["fwd"]
-    print(f">> spin {wheel} wheel: {pwm_pin} PWM {duty:.0f}% for "
-          f"{seconds:.0f}s", flush=True)
-    for p in MOTOR_ALL:
+def _setup_motors():
+    for p in (27, 29, 31, 33):
         GPIO.setup(p, GPIO.OUT, initial=GPIO.LOW)
+    return {p: _open(p, True) for p in (27, 29, 31, 33)}
+
+
+def spin(channel, duty, seconds, in_fds):
+    """Drive ONE channel at low PWM while sampling encoder edges."""
+    duty = min(max(duty, 5.0), 40.0)
+    out_fds = _setup_motors()
+    pwm_pin = CH[channel]['in2']  # forward = IN2 PWM
+    print(f">> spin channel {channel} ({pwm_pin}=IN2) PWM {duty:.0f}% "
+          f"for {seconds:.0f}s", flush=True)
     for i in (3, 2, 1):
         print(f">> start in {i}s ...", flush=True)
         time.sleep(1.0)
-    period = 1.0 / 200.0
+    period = 1.0 / PWM_FREQ_HZ
     on_time = period * duty / 100.0
-    counts = {n: 0 for n in PINS}
-    state = {n: GPIO.input(p) for n, p in PINS.items()}
+    counts = {n: 0 for n in ENC}
+    state = {n: read_level(fd) for n, fd in in_fds.items()}
     t0 = time.time()
     last_print = 0.0
     print(">> GO", flush=True)
     while True:
-        now = time.time()
-        elapsed = now - t0
+        elapsed = time.time() - t0
         if elapsed >= seconds:
             break
-        # soft PWM phase
         phase = elapsed % period
-        GPIO.output(pwm_pin, GPIO.HIGH if phase < on_time else GPIO.LOW)
-        # sample encoders as fast as possible
-        for n, p in PINS.items():
-            v = GPIO.input(p)
-            if v == 1 and state[n] == 0:
+        os.pwrite(out_fds[pwm_pin], b'1' if phase < on_time else b'0', 0)
+        for n, fd in in_fds.items():
+            v = read_level(fd)
+            if v and not state[n]:
                 counts[n] += 1
             state[n] = v
         if int(elapsed) != last_print:
             last_print = int(elapsed)
-            print(f">> t={last_print}s edges: {counts}", flush=True)
-    GPIO.output(pwm_pin, GPIO.LOW)
-    for p in MOTOR_ALL:
-        GPIO.output(p, GPIO.LOW)
+            print(f">> t={last_print}s rising edges: {counts}", flush=True)
+    os.pwrite(out_fds[pwm_pin], b'0', 0)
+    for fd in out_fds.values():
+        os.pwrite(fd, b'0', 0)
+        os.close(fd)
     print(f">> done. total rising edges: {counts}", flush=True)
-    print(f">> report wheel revolutions, then: "
-          f"ticks/rev(4x) = 4*edges/revs", flush=True)
-
-
-def drive(duty, seconds):
-    """Drive BOTH wheels forward (straight line) while counting edges.
-
-    User measures distance traveled with a ruler afterwards:
-      ticks_per_meter(4x) = 4 * edges / distance_m
-      ticks_per_rev(4x)   = ticks_per_meter * wheel_circumference_m
-    """
-    duty = min(max(duty, 5.0), 40.0)
-    pwm_pins = (MOTOR["L"]["fwd"], MOTOR["R"]["fwd"])
-    print(f">> drive both wheels fwd PWM {duty:.0f}% for {seconds:.0f}s",
+    print(">>   ticks/rev(4x) = 4*edges/revs; sign = odom sign for fwd",
           flush=True)
-    for p in MOTOR_ALL:
-        GPIO.setup(p, GPIO.OUT, initial=GPIO.LOW)
+
+
+def drive(duty, seconds, in_fds):
+    """Drive BOTH channels forward (straight line) while counting edges."""
+    duty = min(max(duty, 5.0), 40.0)
+    out_fds = _setup_motors()
+    pwm_pins = (CH['A']['in2'], CH['B']['in2'])
+    print(f">> drive both channels fwd PWM {duty:.0f}% for {seconds:.0f}s",
+          flush=True)
     for i in (3, 2, 1):
         print(f">> start in {i}s ...", flush=True)
         time.sleep(1.0)
-    period = 1.0 / 200.0
+    period = 1.0 / PWM_FREQ_HZ
     on_time = period * duty / 100.0
-    counts = {n: 0 for n in PINS}
-    state = {n: GPIO.input(p) for n, p in PINS.items()}
+    counts = {n: 0 for n in ENC}
+    state = {n: read_level(fd) for n, fd in in_fds.items()}
     t0 = time.time()
     print(">> GO", flush=True)
     while True:
@@ -175,45 +171,46 @@ def drive(duty, seconds):
         if elapsed >= seconds:
             break
         phase = elapsed % period
-        level = GPIO.HIGH if phase < on_time else GPIO.LOW
+        level = b'1' if phase < on_time else b'0'
         for p in pwm_pins:
-            GPIO.output(p, level)
-        for n, p in PINS.items():
-            v = GPIO.input(p)
-            if v == 1 and state[n] == 0:
+            os.pwrite(out_fds[p], level, 0)
+        for n, fd in in_fds.items():
+            v = read_level(fd)
+            if v and not state[n]:
                 counts[n] += 1
             state[n] = v
-    for p in MOTOR_ALL:
-        GPIO.output(p, GPIO.LOW)
+    for fd in out_fds.values():
+        os.pwrite(fd, b'0', 0)
+        os.close(fd)
     print(f">> done. total rising edges: {counts}", flush=True)
     print(">> measure distance traveled (m), then:", flush=True)
-    print(">>   left ticks/m(4x)  = 4*(RA+RB)/2... use: "
-          "4*RA/d or 4*RB/d", flush=True)
-    print(">>   right ticks/m(4x) = 4*LA/d or 4*LB/d", flush=True)
+    print(">>   ticks/m(4x) = 4 * edges / distance  (per encoder pair)",
+          flush=True)
 
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "watch"
-    setup()
+    in_fds = setup()
     if mode == "watch":
-        watch(30.0)
+        watch(30.0, in_fds)
     elif mode == "count":
         turns = int(sys.argv[2]) if len(sys.argv) > 2 else 1
-        count(turns=turns)
+        count(turns, in_fds)
     elif mode == "spin":
-        wheel = sys.argv[2].upper() if len(sys.argv) > 2 else "L"
+        channel = sys.argv[2].upper() if len(sys.argv) > 2 else "A"
         duty = float(sys.argv[3]) if len(sys.argv) > 3 else 20.0
         seconds = float(sys.argv[4]) if len(sys.argv) > 4 else 25.0
-        spin(wheel, duty, seconds)
+        spin(channel, duty, seconds, in_fds)
     elif mode == "drive":
         duty = float(sys.argv[2]) if len(sys.argv) > 2 else 20.0
         seconds = float(sys.argv[3]) if len(sys.argv) > 3 else 4.0
-        drive(duty, seconds)
+        drive(duty, seconds, in_fds)
     else:
         print("usage: encoder_test.py [watch|count [turns]|"
-              "spin [L|R] [duty%] [seconds]|drive [duty%] [seconds]]")
-    GPIO.cleanup()
-    print(">> cleanup done", flush=True)
+              "spin [A|B] [duty%] [seconds]|drive [duty%] [seconds]]")
+    for fd in in_fds.values():
+        os.close(fd)
+    print(">> done", flush=True)
 
 
 if __name__ == "__main__":

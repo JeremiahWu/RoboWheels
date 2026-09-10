@@ -1,0 +1,14 @@
+astra_rgb_node:
+  ros__parameters:
+    device: 0                 # V4L2 index; /dev/video0 on the X5
+    width: 1280
+    height: 720
+    fps: 30.0
+    fourcc: MJPG              # MJPG 1280x720@30; YUYV only goes to 640x480@30
+    encoding: bgr8
+    frame_id: astra_rgb
+    # placeholder intrinsics - calibrate with camera_calibration later
+    fx: 700.0
+    fy: 700.0
+    cx: 640.0
+    cy: 360.0

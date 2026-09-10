@@ -1,0 +1,14 @@
+# RoboWheels USB device symlinks (RDK X5)
+# Install: sudo cp udev/99-robowheels.rules /etc/udev/rules.d/ && sudo udevadm control --reload && sudo udevadm trigger
+
+# Orbbec Astra Pro - RGB (UVC part)
+SUBSYSTEM=="video4linux", ATTRS{idVendor}=="2bc5", ATTRS{idProduct}=="0501", SYMLINK+="astra_rgb", MODE="0666"
+
+# Orbbec Astra Pro - depth/IR (vendor-specific part, used by orbbec_camera)
+SUBSYSTEM=="usb", ATTRS{idVendor}=="2bc5", ATTRS{idProduct}=="0403", MODE="0666"
+
+# Gamepad (DragonRise)
+SUBSYSTEM=="input", ATTRS{idVendor}=="0079", ATTRS{idProduct}=="181c", SYMLINK+="input/robowheels_joy", MODE="0666"
+
+# CH340 USB-TTL adapters (future bus-servo / peripheral use)
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="ttyUSB_servo", MODE="0666"

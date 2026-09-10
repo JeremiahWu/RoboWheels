@@ -1,0 +1,27 @@
+# RoboWheels RDK X5 container
+#
+# Device access notes (all required for the full bringup):
+#   /dev            - MIPI VIN, USB cameras, UART, gamepad
+#   /sys (rw)       - GPIO sysfs (/sys/class/gpio), IIO (GS130 IMU)
+#   privileged      - device nodes + capabilities the drivers need
+#   network_mode    - host (ROS2 DDS discovery)
+services:
+  robowheels:
+    image: robowheels:rdkx5
+    build:
+      context: .
+      dockerfile: Dockerfile
+    network_mode: host
+    privileged: true
+    ipc: host            # hobot_shm zero-copy for mipi_cam
+    volumes:
+      - /dev:/dev
+      - /sys:/sys:rw
+      - /userdata:/userdata
+    environment:
+      RMW_IMPLEMENTATION: rmw_fastrtps_cpp
+    tty: true
+    stdin_open: true
+    command: bash
+    # full bringup instead of bash:
+    # command: ros2 launch robowheels bringup.launch.py

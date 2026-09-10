@@ -9,3 +9,7 @@ ros2_ws/log/
 # python
 __pycache__/
 *.pyc
+
+# uv
+.venv/
+uv.lock.hash

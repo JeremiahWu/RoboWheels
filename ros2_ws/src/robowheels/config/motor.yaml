@@ -1,10 +1,45 @@
 motor_driver:
   ros__parameters:
-    # ---- robot geometry (measured 2026-08-26, see HARDWARE.md) ----
+    # ---- robot geometry (from Orange Pi 3 LTS build, see HARDWARE.md) ----
+    # NOTE: values carried over from the OPi 3 LTS calibration.  The
+    # ticks/meter numbers belong to the OPi sampling loop - re-verify on
+    # the RDK X5 with tools/encoder_test.py drive mode.
     wheel_radius: 0.0318                     # circumference 0.20 m
-    wheel_separation: 0.155                  # measured 2026-08-26 wheel-center distance
-    encoder_ticks_per_revolution: 334        # 4x quadrature, measured at WHEEL
-    gear_ratio: 1.0                          # encoder already at wheel level
+    wheel_separation: 0.155                  # wheel-center distance (m)
+    ticks_per_meter_left: 1679.0             # 4x quadrature, measured at WHEEL
+    ticks_per_meter_right: 1656.0
+    encoder_sign_left: 1                     # -1 flips odom sign for the wheel
+    encoder_sign_right: 1
+
+    # ---- channel <-> wheel mapping ----
+    # UNVERIFIED on the X5 wiring: on the OPi 3 LTS build A channel drove
+    # the RIGHT wheel and the encoders were crossed.  Run
+    #   python3 tools/motor_test.py L fwd    /   R fwd
+    #   python3 tools/encoder_test.py watch
+    # and fix the four values below to match reality.
+    channel_a_wheel: right                   # AT8236 channel A (AIN1=27 AIN2=29)
+    channel_b_wheel: left                    # AT8236 channel B (BIN1=31 BIN2=33)
+    encoder1_wheel: left                     # E1A=11 E1B=13
+    encoder2_wheel: right                    # E2A=15 E2B=16
+    # forward = which IN gets PWM (verified AT8236 truth table):
+    #   forward  = IN2 PWM, IN1 LOW  -> 2
+    #   backward = IN1 PWM, IN2 LOW
+    channel_a_forward_input: 2
+    channel_b_forward_input: 2
+
+    # ---- pins (BOARD numbering, RDK X5 40PIN, verified 2026-09-10) ----
+    # motors: AIN1=27 AIN2=29 BIN1=31 BIN2=33 (all four also have hardware
+    # PWM functions pwmchip0/4/6, but the DT routes them elsewhere today;
+    # we use software PWM)
+    # encoders: E1A=11 E1B=13 E2A=15 E2B=16 (plain GPIO on gpiochip379)
+    motor_pin_ain1: 27
+    motor_pin_ain2: 29
+    motor_pin_bin1: 31
+    motor_pin_bin2: 33
+    encoder_pin_e1a: 11
+    encoder_pin_e1b: 13
+    encoder_pin_e2a: 15
+    encoder_pin_e2b: 16
 
     # ---- limits ----
     max_pwm: 40                              # % duty, conservative until tested
@@ -13,12 +48,14 @@ motor_driver:
     linear_deadband: 0.01                    # m/s, below -> stop
 
     # ---- control ----
-    pwm_frequency: 200                       # Hz software PWM (verified)
+    pwm_frequency: 200                       # Hz software PWM
     cmd_vel_topic: /cmd_vel
     cmd_vel_timeout: 0.5                     # s, no update -> stop
+    use_pid: false                           # true: encoder PI on wheel speed
+    pid_kp: 20.0                             # duty% per m/s error
+    pid_ki: 0.0
 
-    # ---- pins (verified, do NOT change) ----
-    left_motor_fwd: PH6                       # left wheel forward = IN2 PWM
-    left_motor_rev: PH4                       # left wheel backward = IN1 PWM
-    right_motor_fwd: PH5                      # right wheel forward = IN2 PWM
-    right_motor_rev: PL10                     # right wheel backward = IN1 PWM
+    # ---- odometry ----
+    odom_frame: odom
+    base_frame: base_footprint
+    publish_tf: true
