@@ -1,0 +1,13 @@
+services:
+  control:
+    build:
+      context: .
+      dockerfile: docker/sim/Dockerfile.control
+    image: robowheels:control-humble
+    init: true
+    ports:
+      - "127.0.0.1:18081:8081"
+      - "127.0.0.1:16080:6080"
+    environment:
+      ROS_DOMAIN_ID: "43"
+    shm_size: 1g

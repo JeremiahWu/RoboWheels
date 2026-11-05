@@ -1,0 +1,41 @@
+{
+  "step_sha256": "3312c97f8f197c85c103d2350e4d5f492de02710f13549223610624c20c9dcea",
+  "cad_up_axis": [
+    -0.020674448977934457,
+    0.999432689548417,
+    0.026586955852002565
+  ],
+  "cad_left_axis": [
+    -0.99880761,
+    -0.01947057,
+    -0.0447689
+  ],
+  "wheel_axis_points_mm": [
+    [
+      -98.620123,
+      -157.655922,
+      -53.517171
+    ],
+    [
+      60.529882,
+      -154.553481,
+      -46.383696
+    ]
+  ],
+  "wheel_radius_m": 0.0332,
+  "wheel_width_m": 0.026,
+  "caster_radius_m": 0.0125,
+  "mesh_deflection_m": 0.0006,
+  "friction": 0.8,
+  "masses_kg": {
+    "base_link": 1.8,
+    "mast_link": 0.15,
+    "arm_mount_link": 0.3,
+    "right_arm_link": 0.6,
+    "left_arm_link": 0.6,
+    "astra_link": 0.3,
+    "left_wheel_link": 0.08,
+    "right_wheel_link": 0.08,
+    "caster_link": 0.03
+  }
+}

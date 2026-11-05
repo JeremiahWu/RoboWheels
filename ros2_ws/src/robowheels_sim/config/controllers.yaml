@@ -1,0 +1,58 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+    base_controller:
+      type: diff_drive_controller/DiffDriveController
+arm_controller:
+  ros__parameters:
+    joints:
+      - right_shoulder_roll
+      - right_shoulder_pitch
+      - right_elbow_pitch
+      - right_wrist_pitch
+      - right_wrist_roll
+      - left_shoulder_roll
+      - left_shoulder_pitch
+      - left_elbow_pitch
+      - left_wrist_pitch
+      - left_wrist_roll
+    command_interfaces: [position]
+    state_interfaces: [position, velocity]
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    constraints:
+      goal_time: 1.0
+      stopped_velocity_tolerance: 0.02
+base_controller:
+  ros__parameters:
+    left_wheel_names: [left_wheel_joint]
+    right_wheel_names: [right_wheel_joint]
+    wheel_separation: 0.15631239107433037
+    wheel_radius: 0.0332
+    use_stamped_vel: false
+    position_feedback: true
+    open_loop: false
+    publish_rate: 50.0
+    odom_frame_id: odom
+    base_frame_id: base_footprint
+    enable_odom_tf: true
+    cmd_vel_timeout: 0.5
+    velocity_rolling_window_size: 1
+    publish_limited_velocity: true
+    linear.x.has_velocity_limits: true
+    linear.x.max_velocity: 0.25
+    linear.x.min_velocity: -0.25
+    linear.x.has_acceleration_limits: true
+    linear.x.max_acceleration: 0.5
+    linear.x.min_acceleration: -0.5
+    angular.z.has_velocity_limits: true
+    angular.z.max_velocity: 1.0
+    angular.z.min_velocity: -1.0
+    angular.z.has_acceleration_limits: true
+    angular.z.max_acceleration: 2.0
+    angular.z.min_acceleration: -2.0

@@ -1,6 +1,30 @@
 # third-party drivers with their own git history (keep out of this repo)
 drivers/
 
+# macOS / editor temporary files
+.DS_Store
+._*
+.AppleDouble/
+*~
+*.swp
+*.swo
+.idea/
+
+# Local configuration / secrets (keep shareable examples)
+.env
+.env.*
+!.env.example
+!.env.*.example
+compose.override.yaml
+compose.override.yml
+.local/
+
+# Raw CAD stays local; exported runtime meshes and URDF/SDF are versioned.
+/models/
+/step/*
+!/step/README.md
+solver.bin
+
 # colcon build artifacts
 ros2_ws/build/
 ros2_ws/install/
@@ -9,7 +33,26 @@ ros2_ws/log/
 # python
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+build/
+dist/
 
 # uv
 .venv/
+.venv-*/
 uv.lock.hash
+
+# Runtime recordings / logs; do not ignore source config or robot meshes.
+*.log
+*.bag
+*.db3
+*.db3-shm
+*.db3-wal
+*.mcap
+rosbags/

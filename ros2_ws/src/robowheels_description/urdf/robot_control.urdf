@@ -1,0 +1,505 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="robowheels">
+  <link name="base_footprint" />
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint" />
+    <child link="base_link" />
+    <origin xyz="0 0 0.0332" />
+  </joint>
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/base_link.stl" />
+      </geometry>
+      <material name="base_link_material">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+    <inertial>
+      <origin xyz="-0.0318259535 3.65871519e-05 0.0604680357" />
+      <mass value="1.8" />
+      <inertia ixx="0.00996234786066134" iyy="0.010731749977905014" izz="0.011715397882756337" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <collision name="base_link_collision">
+      <origin xyz="-0.0318259535 3.65871519e-05 0.0604680357" />
+      <geometry>
+        <box size="0.204 0.191014797 0.173" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="mast_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/mast_link.stl" />
+      </geometry>
+      <material name="mast_link_material">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+    <inertial>
+      <origin xyz="0 0 0" />
+      <mass value="0.15" />
+      <inertia ixx="0.0008022936571966947" iyy="0.0007874616086122587" izz="2.7255265808507982e-05" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <collision name="mast_link_collision">
+      <origin xyz="0 0 0" />
+      <geometry>
+        <box size="0.0222918974 0.041030386 0.25" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="mast_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="mast_link" />
+    <origin xyz="-0.00625268749 0.00269514236 0.315288035" />
+  </joint>
+  <link name="arm_mount_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/arm_mount_link.stl" />
+      </geometry>
+      <material name="arm_mount_link_material">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+    <inertial>
+      <origin xyz="0 0 0" />
+      <mass value="0.3" />
+      <inertia ixx="0.000551753377151742" iyy="0.0005517533771518032" izz="0.0006540599493033816" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <collision name="arm_mount_link_collision">
+      <origin xyz="0 0 0" />
+      <geometry>
+        <box size="0.114373069 0.114373069 0.09481" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="arm_mount_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="arm_mount_link" />
+    <origin xyz="-0.00637300074 0.0023598377 0.186523035" />
+  </joint>
+  <link name="astra_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/astra_link.stl" />
+      </geometry>
+      <material name="astra_link_material">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+    <inertial>
+      <origin xyz="0 0 0" />
+      <mass value="0.3" />
+      <inertia ixx="0.0007600693162909078" iyy="0.0002396586653657222" izz="0.000873908195797151" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <collision name="astra_link_collision">
+      <origin xyz="0 0 0" />
+      <geometry>
+        <box size="0.0840830001 0.166992146 0.0501636892" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="astra_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="astra_link" />
+    <origin xyz="0.00857200063 0.00332180294 0.46536978" />
+  </joint>
+  <link name="left_wheel_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/left_wheel_link.stl" />
+      </geometry>
+      <material name="left_wheel_link_material">
+        <color rgba="0.12 0.12 0.14 1" />
+      </material>
+    </visual>
+    <inertial>
+      <origin xyz="-3.6370024e-10 -0.000586149315 1.99372303e-10" />
+      <mass value="0.08" />
+      <inertia ixx="3.5456330816517186e-05" iyy="5.871981289641652e-05" izz="3.545633081652129e-05" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <collision name="left_wheel_link_collision">
+      <origin rpy="1.5707963267948966 0 0" />
+      <geometry>
+        <cylinder radius="0.0332" length="0.026" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="left_wheel_joint" type="continuous">
+    <parent link="base_link" />
+    <child link="left_wheel_link" />
+    <origin xyz="0 0.0781561955 0" />
+    <axis xyz="0 1 0" />
+    <limit effort="2" velocity="20" />
+    <dynamics damping="0.01" friction="0" />
+  </joint>
+  <link name="right_wheel_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/right_wheel_link.stl" />
+      </geometry>
+      <material name="right_wheel_link_material">
+        <color rgba="0.12 0.12 0.14 1" />
+      </material>
+    </visual>
+    <inertial>
+      <origin xyz="2.94291862e-10 0.000586141681 2.00216441e-10" />
+      <mass value="0.08" />
+      <inertia ixx="3.545633081652782e-05" iyy="5.8719812896417204e-05" izz="3.545633081652472e-05" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <collision name="right_wheel_link_collision">
+      <origin rpy="1.5707963267948966 0 0" />
+      <geometry>
+        <cylinder radius="0.0332" length="0.026" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="right_wheel_joint" type="continuous">
+    <parent link="base_link" />
+    <child link="right_wheel_link" />
+    <origin xyz="0 -0.0781561955 0" />
+    <axis xyz="0 1 0" />
+    <limit effort="2" velocity="20" />
+    <dynamics damping="0.01" friction="0" />
+  </joint>
+  <link name="caster_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/caster_link.stl" />
+      </geometry>
+      <material name="caster_link_material">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+    <inertial>
+      <origin xyz="0 0 0" />
+      <mass value="0.03" />
+      <inertia ixx="1.9850315052214744e-06" iyy="3.125050003812256e-06" izz="1.985031508830174e-06" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <collision name="caster_link_collision">
+      <origin xyz="0 0 0.00183196408" />
+      <geometry>
+        <sphere radius="0.0125" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="caster_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="caster_link" />
+    <origin xyz="-0.0896517601 0.00013640945 -0.0225319641" />
+  </joint>
+  <ros2_control name="RoboWheelsVirtualHardware" type="system">
+    <hardware>
+      <plugin>mock_components/GenericSystem</plugin>
+    </hardware>
+    <joint name="right_shoulder_roll">
+      <command_interface name="position">
+        <param name="min">-0.65</param>
+        <param name="max">0.65</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="right_shoulder_pitch">
+      <command_interface name="position">
+        <param name="min">-0.65</param>
+        <param name="max">0.65</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="right_elbow_pitch">
+      <command_interface name="position">
+        <param name="min">-0.65</param>
+        <param name="max">0.65</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="right_wrist_pitch">
+      <command_interface name="position">
+        <param name="min">-0.65</param>
+        <param name="max">0.65</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="right_wrist_roll">
+      <command_interface name="position">
+        <param name="min">-0.65</param>
+        <param name="max">0.65</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="left_shoulder_roll">
+      <command_interface name="position">
+        <param name="min">-0.65</param>
+        <param name="max">0.65</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="left_shoulder_pitch">
+      <command_interface name="position">
+        <param name="min">-0.65</param>
+        <param name="max">0.65</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="left_elbow_pitch">
+      <command_interface name="position">
+        <param name="min">-0.65</param>
+        <param name="max">0.65</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="left_wrist_pitch">
+      <command_interface name="position">
+        <param name="min">-0.65</param>
+        <param name="max">0.65</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="left_wrist_roll">
+      <command_interface name="position">
+        <param name="min">-0.65</param>
+        <param name="max">0.65</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity" />
+    </joint>
+  </ros2_control>
+  <link name="shoulder_housings_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/shoulder_housings_link.stl" />
+      </geometry>
+      <material name="arm_metal">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="shoulder_housings_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="shoulder_housings_link" />
+  </joint>
+  <link name="right_shoulder_roll_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/right_shoulder_roll_link.stl" />
+      </geometry>
+      <material name="arm_metal">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="right_shoulder_roll" type="revolute">
+    <parent link="base_link" />
+    <child link="right_shoulder_roll_link" />
+    <origin xyz="-0.00404527099 -0.0303939237 0.355318694" />
+    <axis xyz="0.061201029 -0.99812546 3.37191261e-16" />
+    <limit lower="-0.65" upper="0.65" effort="1" velocity="0.5" />
+  </joint>
+  <link name="right_shoulder_pitch_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/right_shoulder_pitch_link.stl" />
+      </geometry>
+      <material name="arm_metal">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="right_shoulder_pitch" type="revolute">
+    <parent link="right_shoulder_roll_link" />
+    <child link="right_shoulder_pitch_link" />
+    <origin xyz="0.000573966997 -0.0378486861 0.00215" />
+    <axis xyz="0.99812546 0.061201029 1.0501851e-15" />
+    <limit lower="-0.65" upper="0.65" effort="1" velocity="0.5" />
+  </joint>
+  <link name="right_elbow_pitch_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/right_elbow_pitch_link.stl" />
+      </geometry>
+      <material name="arm_metal">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="right_elbow_pitch" type="revolute">
+    <parent link="right_shoulder_pitch_link" />
+    <child link="right_elbow_pitch_link" />
+    <origin xyz="0.0067650393 -0.0889259224 0.039696886" />
+    <axis xyz="0.99812546 0.061201029 8.84169351e-16" />
+    <limit lower="-0.65" upper="0.65" effort="1" velocity="0.5" />
+  </joint>
+  <link name="right_wrist_pitch_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/right_wrist_pitch_link.stl" />
+      </geometry>
+      <material name="arm_metal">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="right_wrist_pitch" type="revolute">
+    <parent link="right_elbow_pitch_link" />
+    <child link="right_wrist_pitch_link" />
+    <origin xyz="0.00583680844 -0.0951923064 -0.0236513015" />
+    <axis xyz="0.99812546 0.061201029 -2.80380214e-14" />
+    <limit lower="-0.65" upper="0.65" effort="1" velocity="0.5" />
+  </joint>
+  <link name="right_wrist_roll_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/right_wrist_roll_link.stl" />
+      </geometry>
+      <material name="arm_metal">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="right_wrist_roll" type="revolute">
+    <parent link="right_wrist_pitch_link" />
+    <child link="right_wrist_roll_link" />
+    <origin xyz="-0.00181614729 -0.00131862189 -0.0518787" />
+    <axis xyz="-2.8286138e-15 3.33112125e-16 1" />
+    <limit lower="-0.65" upper="0.65" effort="1" velocity="0.5" />
+  </joint>
+  <link name="left_shoulder_roll_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/left_shoulder_roll_link.stl" />
+      </geometry>
+      <material name="arm_metal">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="left_shoulder_roll" type="revolute">
+    <parent link="base_link" />
+    <child link="left_shoulder_roll_link" />
+    <origin xyz="-0.00810438462 0.0358060197 0.355318694" />
+    <axis xyz="-0.061201029 0.99812546 -2.98199355e-16" />
+    <limit lower="-0.65" upper="0.65" effort="1" velocity="0.5" />
+  </joint>
+  <link name="left_shoulder_pitch_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/left_shoulder_pitch_link.stl" />
+      </geometry>
+      <material name="arm_metal">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="left_shoulder_pitch" type="revolute">
+    <parent link="left_shoulder_roll_link" />
+    <child link="left_shoulder_pitch_link" />
+    <origin xyz="-0.000573966997 0.0378486861 0.00215" />
+    <axis xyz="-0.99812546 -0.061201029 1.19454708e-15" />
+    <limit lower="-0.65" upper="0.65" effort="1" velocity="0.5" />
+  </joint>
+  <link name="left_elbow_pitch_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/left_elbow_pitch_link.stl" />
+      </geometry>
+      <material name="arm_metal">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="left_elbow_pitch" type="revolute">
+    <parent link="left_shoulder_pitch_link" />
+    <child link="left_elbow_pitch_link" />
+    <origin xyz="-0.0067650393 0.0889259224 0.039696886" />
+    <axis xyz="-0.99812546 -0.061201029 1.03148307e-15" />
+    <limit lower="-0.65" upper="0.65" effort="1" velocity="0.5" />
+  </joint>
+  <link name="left_wrist_pitch_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/left_wrist_pitch_link.stl" />
+      </geometry>
+      <material name="arm_metal">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="left_wrist_pitch" type="revolute">
+    <parent link="left_elbow_pitch_link" />
+    <child link="left_wrist_pitch_link" />
+    <origin xyz="-0.00583680844 0.0951923064 -0.0236513015" />
+    <axis xyz="-0.99812546 -0.061201029 -2.78862028e-14" />
+    <limit lower="-0.65" upper="0.65" effort="1" velocity="0.5" />
+  </joint>
+  <link name="left_wrist_roll_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robowheels_description/meshes/left_wrist_roll_link.stl" />
+      </geometry>
+      <material name="arm_metal">
+        <color rgba="0.65 0.7 0.75 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="left_wrist_roll" type="revolute">
+    <parent link="left_wrist_pitch_link" />
+    <child link="left_wrist_roll_link" />
+    <origin xyz="0.00181614729 0.00131862189 -0.0518787" />
+    <axis xyz="2.92634406e-15 3.18843326e-16 1" />
+    <limit lower="-0.65" upper="0.65" effort="1" velocity="0.5" />
+  </joint>
+  <ros2_control name="RoboWheelsBaseHardware" type="system">
+    <hardware>
+      <plugin>mock_components/GenericSystem</plugin>
+      <param name="calculate_dynamics">true</param>
+    </hardware>
+    <joint name="left_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+    </joint>
+    <joint name="right_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+    </joint>
+  </ros2_control>
+</robot>

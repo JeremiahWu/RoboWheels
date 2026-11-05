@@ -1,0 +1,14 @@
+services:
+  sim:
+    build:
+      context: .
+      dockerfile: docker/sim/Dockerfile
+    image: robowheels:sim-humble
+    init: true
+    ports:
+      - "127.0.0.1:8765:8765"
+      - "127.0.0.1:18080:8080"
+    environment:
+      ROS_DOMAIN_ID: "42"
+    shm_size: 512m
+    command: ["ros2", "launch", "robowheels_sim", "sim.launch.py"]

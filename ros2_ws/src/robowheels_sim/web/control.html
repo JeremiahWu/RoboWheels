@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RoboWheels · RViz 轨迹实验</title><link rel="stylesheet" href="/control.css"></head>
+<body>
+<header><div class="brand"><img src="/logo.png" alt="平台图标"><span>轮式具身实验平台 RoboWheels</span></div><span id="connection">正在连接控制器</span></header>
+<main>
+<aside>
+  <div class="eyebrow">ROS2_CONTROL / MOCK HARDWARE</div><h1>底盘与双臂</h1>
+  <p class="sub">目标由轨迹控制器执行，右侧为真实 RViz 的浏览器远程画面。</p>
+  <section class="base-panel"><div class="section-heading"><h2>两轮差速底盘</h2><span id="base-status">连接中</span></div>
+    <div class="base-metrics"><span>线速度 <b id="base-linear">0.00 m/s</b></span><span>角速度 <b id="base-angular">0.00 rad/s</b></span></div>
+    <div class="base-position" id="base-position">X 0.000 · Y 0.000 · 航向 0.0°</div>
+    <div class="base-pad"><button data-base="forward" aria-label="底盘前进">↑<small>W</small></button><button data-base="left" aria-label="底盘左转">↶<small>A</small></button><button id="base-stop" class="cancel" aria-label="底盘停车">■</button><button data-base="right" aria-label="底盘右转">↷<small>D</small></button><button data-base="backward" aria-label="底盘后退">↓<small>S</small></button></div>
+    <label class="duration" for="base-speed">底盘移动速度 <output id="base-speed-label">0.12 m/s</output></label><input id="base-speed" type="range" min="0.05" max="0.25" step="0.01" value="0.12">
+    <div class="wheel-feedback" id="wheel-feedback">左轮 0.00 rad · 右轮 0.00 rad</div><p class="sub">按住按钮或 W/A/S/D 移动，松开停车，空格停止。底盘使用虚拟轮速反馈更新里程计。</p>
+  </section>
+  <div class="card"><b id="execution">等待控制器就绪</b><small id="error-value">位置误差 —</small></div>
+  <div class="actions"><button id="demo" class="primary">执行示例轨迹</button><button id="home">回到装配姿态</button><button id="cancel" class="cancel">取消轨迹</button></div>
+  <section><div class="section-heading"><h2>目标关节位置</h2><span>单位 rad</span></div><div id="joints"></div></section>
+  <label class="duration" for="duration">执行时长 <output id="duration-label">4 秒</output></label><input id="duration" type="range" min="4" max="12" step="1" value="4">
+  <button id="execute" class="primary full">执行目标位置</button>
+  <p id="message" role="status"></p><p class="footnote">零位为 STEP 装配姿态。当前为位置跟随虚拟硬件，不包含负载动力学或碰撞规划。</p>
+</aside>
+<section class="rviz"><div class="toolbar"><span><i></i>RViz · RobotModel / TF</span><a id="fullscreen" target="_blank" rel="noopener">单独打开 RViz ↗</a></div><iframe id="desktop" title="浏览器中的 RViz" allow="fullscreen"></iframe><div class="view-note">在 RViz 中拖动旋转视角、滚轮缩放；左侧 Displays 中可开启 Joint frames 查看关节坐标。</div></section>
+</main><script src="/control.js" defer></script></body></html>

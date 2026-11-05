@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RoboWheels · 仿真现场</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="importmap">{"imports":{"three":"/vendor/three.module.js"}}</script>
+</head>
+<body>
+  <header><a class="brand" href="/"><img src="/logo.png" alt="RoboWheels 图标"><span>轮式具身实验平台 RoboWheels</span></a><span class="page-title">仿真现场</span><div class="status" role="status"><i id="status-dot"></i><span id="status">正在连接仿真</span></div></header>
+  <main>
+    <aside>
+      <div class="eyebrow">ROBOT / 01</div><p class="intro">STEP 装配模型 · 差速底盘<br>ROS 2 Humble + Gazebo Fortress</p>
+      <section><h2>实时状态 <span id="clock">0.0 s</span></h2><div class="metrics"><div><small>线速度</small><strong id="linear">0.00 <em>m/s</em></strong></div><div><small>角速度</small><strong id="angular">0.00 <em>rad/s</em></strong></div></div><div class="position"><span>车体位置</span><code id="position">X 0.000　Y 0.000</code></div></section>
+      <section><h2>底盘控制 <span>按住移动</span></h2><div class="drive-pad"><button data-drive="forward" aria-label="前进" title="前进 W">↑<small>W</small></button><button data-drive="left" aria-label="左转" title="左转 A">↶<small>A</small></button><button id="stop" aria-label="停止" title="停止 空格">■</button><button data-drive="right" aria-label="右转" title="右转 D">↷<small>D</small></button><button data-drive="backward" aria-label="后退" title="后退 S">↓<small>S</small></button></div><label class="speed-label" for="speed">移动速度 <output id="speed-value">0.12 m/s</output></label><input id="speed" type="range" min="0.05" max="0.25" step="0.01" value="0.12"><p class="hint">W / A / S / D 控制，空格停止。<br>松开按键或离开页面后自动停车。</p></section>
+      
+    </aside>
+    <div class="viewport" id="viewport">
+      <div class="view-tools"><span class="view-label"><i></i>3D 实时视图</span><div><label class="follow"><input type="checkbox" id="follow" checked>跟随机器人</label><button id="home">回到机器人</button></div></div>
+      <div id="loading" role="status"><div class="spinner"></div><b>正在装配机器人</b><span id="progress">加载机械网格…</span></div>
+      <div id="error" hidden></div>
+      <div class="view-footer"><span>拖动旋转 · 滚轮缩放 · 右键平移</span><span><i class="orange"></i>橙色为碰撞障碍物 <i class="mint"></i>绿色为行驶轨迹</span></div>
+    </div>
+  </main>
+  <script type="module" src="/viewer.js"></script>
+</body>
+</html>

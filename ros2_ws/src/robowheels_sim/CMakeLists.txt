@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.8)
+project(robowheels_sim)
+find_package(ament_cmake REQUIRED)
+install(DIRECTORY launch config worlds web DESTINATION share/${PROJECT_NAME})
+install(PROGRAMS scripts/cmd_vel_watchdog.py scripts/web_viewer.py scripts/control_web.py DESTINATION lib/${PROJECT_NAME})
+ament_package()

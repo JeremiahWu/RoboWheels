@@ -1,6 +1,11 @@
-# build context hygiene (models/ alone is >100 MB of CAD files)
+# Build context: keep raw CAD, local reports and docs outside runtime images.
 .git
 models
+step
+.local
+docs
+.DS_Store
+**/.DS_Store
 prompt.md
 *.bin
 solver.bin
@@ -16,3 +21,15 @@ __pycache__
 *.pyc
 .venv
 .uv
+**/*.egg-info
+third_party/hobot_gpio/build
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.idea
+.env
+.env.*
+*.log
+*.bag
+*.db3
+*.mcap

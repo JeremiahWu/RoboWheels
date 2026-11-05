@@ -1,0 +1,429 @@
+{
+  "step_sha256": "3312c97f8f197c85c103d2350e4d5f492de02710f13549223610624c20c9dcea",
+  "zero_definition": "supplied STEP assembly pose",
+  "hardware": "mock_components/GenericSystem",
+  "provisional_limits_rad": [
+    -0.65,
+    0.65
+  ],
+  "limitations": "Kinematic mock feedback; not servo calibration, torque physics or collision planning.",
+  "joints": [
+    {
+      "name": "right_shoulder_roll",
+      "parent": "base_link",
+      "child": "right_shoulder_roll_link",
+      "hub_instances": [
+        104,
+        105
+      ],
+      "axis_ros": [
+        0.0612010290079214,
+        -0.9981254600742192,
+        3.3719126104914047e-16
+      ],
+      "origin_ros_m": [
+        -0.004045270994646234,
+        -0.030393923660118484,
+        0.3553186942985036
+      ],
+      "hub_axis_alignment_error_mm": 2.3863625941341953e-14,
+      "hub_radius_mm": 10.0
+    },
+    {
+      "name": "right_shoulder_pitch",
+      "parent": "right_shoulder_roll_link",
+      "child": "right_shoulder_pitch_link",
+      "hub_instances": [
+        61,
+        62
+      ],
+      "axis_ros": [
+        0.9981254600742192,
+        0.061201029007921376,
+        1.0501851027818216e-15
+      ],
+      "origin_ros_m": [
+        -0.0034713039974848025,
+        -0.0682426097526138,
+        0.3574686942985037
+      ],
+      "hub_axis_alignment_error_mm": 2.885747097482101e-14,
+      "hub_radius_mm": 10.0
+    },
+    {
+      "name": "right_elbow_pitch",
+      "parent": "right_shoulder_pitch_link",
+      "child": "right_elbow_pitch_link",
+      "hub_instances": [
+        70,
+        71
+      ],
+      "axis_ros": [
+        0.9981254600742191,
+        0.061201029007921424,
+        8.841693509858429e-16
+      ],
+      "origin_ros_m": [
+        0.003293735297747369,
+        -0.1571685321953494,
+        0.39716558033560456
+      ],
+      "hub_axis_alignment_error_mm": 1.8349028936575602e-14,
+      "hub_radius_mm": 10.0
+    },
+    {
+      "name": "right_wrist_pitch",
+      "parent": "right_elbow_pitch_link",
+      "child": "right_wrist_pitch_link",
+      "hub_instances": [
+        74,
+        75
+      ],
+      "axis_ros": [
+        0.9981254600742188,
+        0.06120102900792783,
+        -2.8038021377962463e-14
+      ],
+      "origin_ros_m": [
+        0.00913054373641089,
+        -0.25236083864251263,
+        0.37351427888051136
+      ],
+      "hub_axis_alignment_error_mm": 2.1836724472200294e-14,
+      "hub_radius_mm": 10.0
+    },
+    {
+      "name": "right_wrist_roll",
+      "parent": "right_wrist_pitch_link",
+      "child": "right_wrist_roll_link",
+      "hub_instances": [
+        80,
+        null
+      ],
+      "axis_ros": [
+        -2.8286138018769578e-15,
+        3.331121254488716e-16,
+        1.0
+      ],
+      "origin_ros_m": [
+        0.007314396443228786,
+        -0.25367946053507,
+        0.3216355788940482
+      ],
+      "hub_axis_alignment_error_mm": 0.0,
+      "hub_radius_mm": 10.0
+    },
+    {
+      "name": "left_shoulder_roll",
+      "parent": "base_link",
+      "child": "left_shoulder_roll_link",
+      "hub_instances": [
+        152,
+        153
+      ],
+      "axis_ros": [
+        -0.06120102900792377,
+        0.998125460074219,
+        -2.9819935511429126e-16
+      ],
+      "origin_ros_m": [
+        -0.008104384617015582,
+        0.03580601966594268,
+        0.35531869429850355
+      ],
+      "hub_axis_alignment_error_mm": 2.498768441566102e-14,
+      "hub_radius_mm": 10.0
+    },
+    {
+      "name": "left_shoulder_pitch",
+      "parent": "left_shoulder_roll_link",
+      "child": "left_shoulder_pitch_link",
+      "hub_instances": [
+        109,
+        110
+      ],
+      "axis_ros": [
+        -0.998125460074219,
+        -0.061201029007923756,
+        1.1945470751321667e-15
+      ],
+      "origin_ros_m": [
+        -0.008678351614177111,
+        0.073654705758438,
+        0.3574686942985037
+      ],
+      "hub_axis_alignment_error_mm": 6.8486294042443276e-15,
+      "hub_radius_mm": 10.0
+    },
+    {
+      "name": "left_elbow_pitch",
+      "parent": "left_shoulder_pitch_link",
+      "child": "left_elbow_pitch_link",
+      "hub_instances": [
+        118,
+        119
+      ],
+      "axis_ros": [
+        -0.998125460074219,
+        -0.06120102900792381,
+        1.0314830683903469e-15
+      ],
+      "origin_ros_m": [
+        -0.015443390909409481,
+        0.16258062820117364,
+        0.39716558033560445
+      ],
+      "hub_axis_alignment_error_mm": 2.1588370137860656e-14,
+      "hub_radius_mm": 10.0
+    },
+    {
+      "name": "left_wrist_pitch",
+      "parent": "left_elbow_pitch_link",
+      "child": "left_wrist_pitch_link",
+      "hub_instances": [
+        122,
+        123
+      ],
+      "axis_ros": [
+        -0.9981254600742185,
+        -0.061201029007930195,
+        -2.788620280981041e-14
+      ],
+      "origin_ros_m": [
+        -0.021280199348073306,
+        0.2577729346483368,
+        0.37351427888051125
+      ],
+      "hub_axis_alignment_error_mm": 1.1327572816891278e-14,
+      "hub_radius_mm": 10.0
+    },
+    {
+      "name": "left_wrist_roll",
+      "parent": "left_wrist_pitch_link",
+      "child": "left_wrist_roll_link",
+      "hub_instances": [
+        128,
+        null
+      ],
+      "axis_ros": [
+        2.926344057543669e-15,
+        3.1884332612927757e-16,
+        1.0
+      ],
+      "origin_ros_m": [
+        -0.019464052054891125,
+        0.2590915565408941,
+        0.32163557889404804
+      ],
+      "hub_axis_alignment_error_mm": 0.0,
+      "hub_radius_mm": 10.0
+    }
+  ],
+  "groups": {
+    "shoulder_housings_link": {
+      "instance_ids": [
+        103,
+        104,
+        105,
+        106,
+        151,
+        152,
+        153,
+        154
+      ],
+      "cad_zero_origin_ros_m": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "right_shoulder_roll_link": {
+      "instance_ids": [
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      "cad_zero_origin_ros_m": [
+        -0.004045270994646234,
+        -0.030393923660118484,
+        0.3553186942985036
+      ]
+    },
+    "right_shoulder_pitch_link": {
+      "instance_ids": [
+        64,
+        65,
+        66,
+        69,
+        70,
+        71,
+        72
+      ],
+      "cad_zero_origin_ros_m": [
+        -0.0034713039974848025,
+        -0.0682426097526138,
+        0.3574686942985037
+      ]
+    },
+    "right_elbow_pitch_link": {
+      "instance_ids": [
+        67,
+        68,
+        73,
+        74,
+        75,
+        76,
+        77
+      ],
+      "cad_zero_origin_ros_m": [
+        0.003293735297747369,
+        -0.1571685321953494,
+        0.39716558033560456
+      ]
+    },
+    "right_wrist_pitch_link": {
+      "instance_ids": [
+        78,
+        79,
+        80
+      ],
+      "cad_zero_origin_ros_m": [
+        0.00913054373641089,
+        -0.25236083864251263,
+        0.37351427888051136
+      ]
+    },
+    "right_wrist_roll_link": {
+      "instance_ids": [
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102
+      ],
+      "cad_zero_origin_ros_m": [
+        0.007314396443228786,
+        -0.25367946053507,
+        0.3216355788940482
+      ]
+    },
+    "left_shoulder_roll_link": {
+      "instance_ids": [
+        107,
+        108,
+        109,
+        110,
+        111
+      ],
+      "cad_zero_origin_ros_m": [
+        -0.008104384617015582,
+        0.03580601966594268,
+        0.35531869429850355
+      ]
+    },
+    "left_shoulder_pitch_link": {
+      "instance_ids": [
+        112,
+        113,
+        114,
+        117,
+        118,
+        119,
+        120
+      ],
+      "cad_zero_origin_ros_m": [
+        -0.008678351614177111,
+        0.073654705758438,
+        0.3574686942985037
+      ]
+    },
+    "left_elbow_pitch_link": {
+      "instance_ids": [
+        115,
+        116,
+        121,
+        122,
+        123,
+        124,
+        125
+      ],
+      "cad_zero_origin_ros_m": [
+        -0.015443390909409481,
+        0.16258062820117364,
+        0.39716558033560445
+      ]
+    },
+    "left_wrist_pitch_link": {
+      "instance_ids": [
+        126,
+        127,
+        128
+      ],
+      "cad_zero_origin_ros_m": [
+        -0.021280199348073306,
+        0.2577729346483368,
+        0.37351427888051125
+      ]
+    },
+    "left_wrist_roll_link": {
+      "instance_ids": [
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150
+      ],
+      "cad_zero_origin_ros_m": [
+        -0.019464052054891125,
+        0.2590915565408941,
+        0.32163557889404804
+      ]
+    }
+  },
+  "base_hardware": {
+    "name": "RoboWheelsBaseHardware",
+    "plugin": "mock_components/GenericSystem",
+    "calculate_dynamics": true,
+    "wheel_command_interface": "velocity",
+    "wheel_state_interfaces": [
+      "position",
+      "velocity"
+    ]
+  }
+}
