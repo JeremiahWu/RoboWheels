@@ -8,6 +8,10 @@ drivers/
 *~
 *.swp
 *.swo
+*.tmp
+*.bak
+*.orig
+*.rej
 .idea/
 
 # Local configuration / secrets (keep shareable examples)
@@ -18,6 +22,9 @@ drivers/
 compose.override.yaml
 compose.override.yml
 .local/
+# X11 authentication must stay local, including manually copied files.
+.Xauthority
+Xauthority
 
 # Raw CAD stays local; exported runtime meshes and URDF/SDF are versioned.
 /models/
@@ -29,6 +36,11 @@ solver.bin
 ros2_ws/build/
 ros2_ws/install/
 ros2_ws/log/
+ros2_ws/**/CMakeFiles/
+ros2_ws/**/CMakeCache.txt
+ros2_ws/**/compile_commands.json
+ros2_ws/**/*.o
+ros2_ws/**/*.so
 
 # python
 __pycache__/
@@ -38,7 +50,10 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.cache/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
 build/
 dist/
@@ -56,3 +71,9 @@ uv.lock.hash
 *.db3-wal
 *.mcap
 rosbags/
+
+# ROS runtime state and crash dumps
+.ros/
+core
+core.[0-9]*
+vgcore.*
