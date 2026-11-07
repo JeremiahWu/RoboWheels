@@ -6,8 +6,11 @@ RoboWheels 是一个两轮差速、双机械臂机器人项目，包含 RDK X5 �
 
 ## 运行模式
 
+Mac 原生窗口入口：**[XQuartz + VirtualGL 原生 RViz2](docs/simulation/XQUARTZ.md)**。可以直接在 RViz 窗口的控制面板中执行双臂轨迹、驾驶差速底盘并查看位置反馈。
+
 | 模式 | 环境 | 主要能力 | 使用说明 |
 |---|---|---|---|
+| **XQuartz 原生 RViz** | Mac XQuartz + Docker + VirtualGL | RViz 窗口内的双臂轨迹、底盘驾驶与反馈 | [原生窗口](docs/simulation/XQUARTZ.md) |
 | **虚拟硬件与 RViz** | Mac Docker，ROS 2 Humble + ros2_control | 浏览器 RViz、双臂 10 关节轨迹、差速底盘、里程计与反馈 | [控制环境](docs/simulation/ROS2_CONTROL.md) |
 | **底盘物理仿真** | Mac Docker，ROS 2 Humble + Gazebo Fortress | STEP 外观模型、底盘运动、重力与简化碰撞、网页三维显示 | [Gazebo 仿真](docs/simulation/README.md) |
 | **真机运行** | RDK X5，Ubuntu 22.04 / RDK OS 3.5.0 | 电机与编码器、手柄、Astra RGB、GS130 双目与 IMU | [硬件记录](HARDWARE.md)、[ROS 包说明](ros2_ws/src/robowheels/README.md) |

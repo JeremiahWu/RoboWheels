@@ -1,0 +1,5 @@
+<library path="robowheels_rviz_plugins">
+  <class name="robowheels_rviz_plugins/ControlPanel" type="robowheels_rviz_plugins::ControlPanel" base_class_type="rviz_common::Panel">
+    <description>Arm trajectory actions, differential drive and live joint feedback.</description>
+  </class>
+</library>

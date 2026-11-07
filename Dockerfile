@@ -86,7 +86,7 @@ COPY ros2_ws/ ros2_ws/
 RUN . /opt/ros/humble/setup.sh \
     && . /opt/tros/humble/setup.sh \
     && cd ros2_ws \
-    && colcon build --symlink-install
+    && colcon build --symlink-install --packages-select robowheels
 
 # ============================== runtime stage =============================
 FROM base AS runtime

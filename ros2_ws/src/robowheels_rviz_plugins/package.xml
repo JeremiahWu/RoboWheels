@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>robowheels_rviz_plugins</name><version>0.1.0</version>
+  <description>Native RViz controls for RoboWheels mock arms and differential base.</description>
+  <maintainer email="wuruihao629@outlook.com">Wu Ruihao</maintainer><license>MIT</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rviz_common</depend><depend>pluginlib</depend><depend>rclcpp</depend>
+  <depend>geometry_msgs</depend><depend>sensor_msgs</depend><depend>nav_msgs</depend>
+  <exec_depend>robowheels_sim</exec_depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

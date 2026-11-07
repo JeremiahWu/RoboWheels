@@ -1,5 +1,7 @@
 # ros2_control 虚拟硬件与浏览器 RViz
 
+也可通过 **[XQuartz + VirtualGL](XQUARTZ.md)** 在 Mac 原生 RViz2 窗口内执行双臂轨迹与差速底盘控制。
+
 这个模式使用真正的 ROS 2 `controller_manager`、`mock_components/GenericSystem`、`joint_state_broadcaster`、`joint_trajectory_controller` 与 `diff_drive_controller`。浏览器里的 RViz 是容器内 RViz 的 noVNC 远程画面，模型运动来自 `/joint_states`、里程计与 TF；网页通过 `FollowJointTrajectory` action 提交双臂轨迹，通过 `/cmd_vel` 驾驶差速底盘。
 
 ## 运行

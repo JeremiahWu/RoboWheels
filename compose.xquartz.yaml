@@ -1,0 +1,19 @@
+services:
+  control:
+    build:
+      context: .
+      dockerfile: docker/sim/Dockerfile.xquartz
+    image: robowheels:xquartz-humble
+    init: true
+    environment:
+      ROS_DOMAIN_ID: "43"
+      ROBOWHEELS_DISPLAY_MODE: xquartz
+      DISPLAY: host.docker.internal:99
+      XAUTHORITY: /run/xquartz/Xauthority
+      LIBGL_ALWAYS_SOFTWARE: "1"
+      QT_X11_NO_MITSHM: "1"
+    volumes:
+      - ./.local/x11/Xauthority:/run/xquartz/Xauthority:ro
+    ports:
+      - "127.0.0.1:18081:8081"
+    shm_size: 1g
