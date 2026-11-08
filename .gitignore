@@ -77,3 +77,11 @@ rosbags/
 core
 core.[0-9]*
 vgcore.*
+
+# Local runtime handles, temporary exports and timestamped ROS recordings
+*.pid
+*.pid.lock
+*.sock
+/.uv/
+/tmp/
+/rosbag2_*/

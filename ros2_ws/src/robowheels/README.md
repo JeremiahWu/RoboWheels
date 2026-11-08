@@ -13,7 +13,7 @@ RoboWheels 两轮差速底盘在 RDK X5 上的完整控制与感知节点。
 | `stereo_pointcloud_node` | GS130WI 双目 SGBM 立体匹配 → /stereo/points + /stereo/depth（32FC1 米）+ /stereo/disparity + TF；参数 config/stereo_pc.yaml（含实测标定） | ✅ 真机 3.7Hz 实测 |
 | `orbbec_camera`（官方 apt 包） | Astra IR/深度 | ❌ SDK v2 与老 Astra Pro 固件不兼容（实测），备选见 tools/setup_astra_ir.sh |
 
-手柄链：joy_node + teleop_twist_joy → /cmd_vel（✅ 已验证启动，DragonRise 手柄）。
+手柄链：joy_linux_node + teleop_twist_joy → /cmd_vel（✅ 已验证启动，Xbox 360 兼容手柄）。
 舵机 UART：暂停中，工具 tools/uart_loopback_test.py / tools/servo_bus_test.py。
 
 ## 环境（重要）
@@ -55,7 +55,7 @@ ros2 launch robowheels astra_camera.launch.py use_sdk:=false   # Astra RGB 兜�
    ros2 launch robowheels motor.launch.py
    ros2 launch robowheels joy.launch.py
    ```
-   按住 RB（使能键 5），左摇杆前后走，右摇杆左右转。
+   按住 RB（使能键 5），左摇杆前后走，右摇杆左右转。线速度指令上限 0.3 m/s，PWM 上限 20%。也可使用 `ros2 launch robowheels teleop.launch.py` 同时启动底盘与手柄。
 
 ## 话题速查
 

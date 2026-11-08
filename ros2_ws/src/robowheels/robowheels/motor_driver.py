@@ -8,19 +8,15 @@ Hardware (RDK X5, BOARD numbering, verified 2026-09-10):
     motors    AIN1=27  AIN2=29  BIN1=31  BIN2=33   (AT8236)
     encoders  E1A=11   E1B=13   E2A=15   E2B=16   (quadrature)
 
-GPIO backend:
-    Hobot.GPIO (BOARD mode) is used for pin setup/export.  The control
-    loop talks to the exported sysfs ``value`` files directly through
-    kept-open FDs (``os.pread``/``os.pwrite``) - about 10x faster than
-    Hobot.GPIO's open-per-call ``input()``/``output()``.
+Motor backend:
+    Default: hardware PWM via sysfs; stop disables both inputs at zero duty.
+    GPIO software PWM is available only when the pin mux is configured for GPIO.
+    Encoders default to queued GPIO v2 events; legacy sysfs polling is optional.
 
-    Hardware PWM exists on all four motor pins (pwmchip0/4/6), but the
-    DT currently routes those muxed functions elsewhere, so we default
-    to software PWM (same scheme as the Orange Pi 3 LTS build).
-
-Motor truth table (AT8236, verified on Orange Pi 3 LTS, HARDWARE.md):
-    forward  = IN2 PWM, IN1 LOW
-    backward = IN1 PWM, IN2 LOW
+Vehicle forward (verified on X5 2026-11-08):
+    right/A = IN2 PWM, IN1 LOW
+    left/B  = IN1 PWM, IN2 LOW
+    Reverse uses the other input.
     Both LOW = coast.  There is no STBY pin.
 
 Safety:
@@ -31,9 +27,8 @@ Safety:
     floating inputs and the AT8236 could drive the motors)
 
 The channel<->wheel and encoder<->wheel mappings are configurable
-(YAML).  They were swapped on the Orange Pi 3 LTS wiring and have NOT
-been verified on the RDK X5 yet - use tools/motor_test.py and
-tools/encoder_test.py to confirm and fix motor.yaml if needed.
+(YAML).  Verified on X5: A=right, B=left; E1=left/B, E2=right/A.
+Distance calibration remains unverified on X5.
 """
 import math
 import os
@@ -47,7 +42,10 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist, TransformStamped, Quaternion, Vector3
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import JointState
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float32MultiArray, Int64MultiArray, Float64MultiArray
+from robowheels.hardware_pwm import MotorPWM
+from robowheels.encoder_events import EncoderEvents
+from robowheels.differential_drive import DifferentialDrive
 from tf2_ros import TransformBroadcaster
 
 # quadrature state machine, 4x decode.
@@ -70,15 +68,34 @@ class MotorDriver(Node):
         p = self.declare_parameter
 
         # ---- geometry / calibration ----
-        self.wheel_sep = p('wheel_separation', 0.155).value
-        self.ticks_l = p('ticks_per_meter_left', 1679.0).value
-        self.ticks_r = p('ticks_per_meter_right', 1656.0).value
+        self.wheel_sep = p('wheel_separation', 0.15631239107433037).value
+        self.ticks_l = p('ticks_per_meter_left', 0.0).value
+        self.ticks_r = p('ticks_per_meter_right', 0.0).value
         self.sign_l = p('encoder_sign_left', 1).value
         self.sign_r = p('encoder_sign_right', 1).value
 
         # ---- limits / control ----
-        self.max_pwm = p('max_pwm', 40).value
-        self.max_lin = p('max_linear_velocity', 0.5).value
+        self.max_pwm = p('max_pwm', 20).value
+        self.motor_backend = p('motor_backend', 'hardware').value
+        self.encoder_backend = p('encoder_backend', 'events').value
+        if self.encoder_backend not in ('events', 'polling'):
+            raise ValueError('encoder_backend must be events or polling')
+        if self.motor_backend not in ('hardware', 'gpio'):
+            raise ValueError('motor_backend must be hardware or gpio')
+        self.wheel_radius = float(p('wheel_radius', 0.0332).value)
+        self.model = DifferentialDrive(self.wheel_radius, self.wheel_sep)
+        n_left = float(p('encoder_ticks_per_revolution_left', 0.0).value)
+        n_right = float(p('encoder_ticks_per_revolution_right', 0.0).value)
+        if n_left > 0 and n_right > 0:
+            self.ticks_l = self.model.ticks_per_meter(n_left)
+            self.ticks_r = self.model.ticks_per_meter(n_right)
+        if self.ticks_l <= 0 or self.ticks_r <= 0:
+            raise ValueError('Positive measured encoder resolution is required')
+        self.calibration_status = p('encoder_calibration_status', 'unverified').value
+        self.max_lin = p('max_linear_velocity', 0.3).value
+        self.max_wheel_speed = float(p('max_wheel_linear_velocity', 0.3).value)
+        self.max_wheel_accel = float(p('max_wheel_acceleration', 0.5).value)
+        self._limited_targets = {'left': 0.0, 'right': 0.0}
         self.max_ang = p('max_angular_velocity', 2.0).value
         self.deadband = p('linear_deadband', 0.01).value
         self.pwm_freq = p('pwm_frequency', 200).value
@@ -142,7 +159,8 @@ class MotorDriver(Node):
         self._v_target = {'left': 0.0, 'right': 0.0}   # from cmd_vel
         self._duty = {'left': 0.0, 'right': 0.0}       # signed duty %
         self._counts = {'left': 0, 'right': 0}         # cumulative ticks
-        self._last_cmd = time.time()
+        self._invalid = {'left': 0, 'right': 0}
+        self._last_cmd = time.monotonic()
         self._integ = {'left': 0.0, 'right': 0.0}      # PI integral
         self._running = True
 
@@ -156,25 +174,37 @@ class MotorDriver(Node):
         # ---- GPIO: motors OUTPUT LOW first (safe state) ----
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BOARD)
-        for pin in self.motor_pins.values():
-            GPIO.setup(pin, GPIO.OUT, initial=GPIO.LOW)
-        for pin in self.enc_pins.values():
-            try:
-                GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            except (AttributeError, ValueError, RuntimeError):
-                GPIO.setup(pin, GPIO.IN)
+        self._hardware_pwm = None
+        if self.motor_backend == 'hardware':
+            self._hardware_pwm = MotorPWM(self.motor_pins.values(), self.pwm_freq)
+        else:
+            for pin in self.motor_pins.values():
+                GPIO.setup(pin, GPIO.OUT, initial=GPIO.LOW)
+        self._encoder_events = None
+        if self.encoder_backend == 'events':
+            if self.motor_backend != 'hardware':
+                raise ValueError('Event encoders require hardware motor PWM')
+            self._encoder_events = EncoderEvents(list(self.enc_pins.values()))
+        else:
+            for pin in self.enc_pins.values():
+                try:
+                    GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+                except (AttributeError, ValueError, RuntimeError):
+                    GPIO.setup(pin, GPIO.IN)
         self.get_logger().info('motor pins OUTPUT LOW (coast); encoders IN')
 
         # ---- fast sysfs fds ----
         self._out_fds = {}
-        for pin in self.motor_pins.values():
-            path = '/sys/class/gpio/gpio%d/value' % _sysfs_gpio_num(pin)
-            self._out_fds[pin] = os.open(path, os.O_WRONLY)
+        if self.motor_backend == 'gpio':
+            for pin in self.motor_pins.values():
+                path = '/sys/class/gpio/gpio%d/value' % _sysfs_gpio_num(pin)
+                self._out_fds[pin] = os.open(path, os.O_WRONLY)
         # encoder fds keyed by pin NAME (e1a/e1b/e2a/e2b)
         self._in_fds = {}
-        for name, pin in self.enc_pins.items():
-            path = '/sys/class/gpio/gpio%d/value' % _sysfs_gpio_num(pin)
-            self._in_fds[name] = os.open(path, os.O_RDONLY)
+        if self.encoder_backend == 'polling':
+            for name, pin in self.enc_pins.items():
+                path = '/sys/class/gpio/gpio%d/value' % _sysfs_gpio_num(pin)
+                self._in_fds[name] = os.open(path, os.O_RDONLY)
 
         # pin levels cache (for change-detection writes)
         self._levels = {pin: 0 for pin in self.motor_pins.values()}
@@ -182,7 +212,7 @@ class MotorDriver(Node):
         self._enc_state = {}
         for wheel, (pa, pb) in self.wheel_enc.items():
             self._enc_state[wheel] = {
-                'last': self._read_pair(pa, pb),
+                'last': self._read_pair(pa, pb) if self._encoder_events is None else 0,
                 'pins': (pa, pb),
             }
 
@@ -191,10 +221,18 @@ class MotorDriver(Node):
         self._odom_timer = self.create_timer(0.05, self._odom_cb)
         self._cmd_sub = self.create_subscription(
             Twist, cmd_topic, self._cmd_cb, 10)
+        self._target_pub = self.create_publisher(Float32MultiArray, '/wheel_speed_targets', 10)
         self._wheel_pub = self.create_publisher(
             Float32MultiArray, '/wheel_speeds', 10)
         self._odom_pub = self.create_publisher(Odometry, '/odom', 10)
         self._joint_pub = self.create_publisher(JointState, '/joint_states', 10)
+        self._raw_enc_pub = self.create_publisher(Int64MultiArray, '/rdk_debug/encoder_counts', 10)
+        self._raw_rate_pub = self.create_publisher(Float64MultiArray, '/rdk_debug/encoder_rates', 10)
+        self._invalid_pub = self.create_publisher(Int64MultiArray, '/rdk_debug/encoder_invalid', 10)
+        self._drops_pub = self.create_publisher(Int64MultiArray, '/rdk_debug/encoder_event_drops', 10)
+        self._event_drops = 0
+        self._encoder_order = (enc1_wheel, enc2_wheel)
+        self._raw_previous = [0, 0]
         self._tf_pub = TransformBroadcaster(self)
 
         # ---- control loop thread ----
@@ -208,7 +246,7 @@ class MotorDriver(Node):
             f'{self.motor_pins["bin2"]}, enc E1A/B={self.enc_pins["e1a"]}/'
             f'{self.enc_pins["e1b"]} E2A/B={self.enc_pins["e2a"]}/'
             f'{self.enc_pins["e2b"]}, max {self.max_lin} m/s '
-            f'{self.max_ang} rad/s, sw-pwm {self.pwm_freq} Hz '
+            f'{self.max_ang} rad/s, {self.motor_backend} PWM {self.pwm_freq} Hz '
             f'max {self.max_pwm}%')
 
     # ---- helpers ----
@@ -233,16 +271,22 @@ class MotorDriver(Node):
     # ---- cmd_vel ----
 
     def _cmd_cb(self, msg):
+        if not math.isfinite(msg.linear.x) or not math.isfinite(msg.angular.z):
+            with self._lock:
+                self._v_target = {'left': 0.0, 'right': 0.0}
+                self._duty = {'left': 0.0, 'right': 0.0}
+            return
         v = max(min(msg.linear.x, self.max_lin), -self.max_lin)
         w = max(min(msg.angular.z, self.max_ang), -self.max_ang)
         with self._lock:
-            self._v_target['left'] = v - w * self.wheel_sep / 2.0
-            self._v_target['right'] = v + w * self.wheel_sep / 2.0
-            self._last_cmd = time.time()
+            left,right=self.model.inverse(v,w,self.max_wheel_speed)
+            self._v_target['left'] = left
+            self._v_target['right'] = right
+            self._last_cmd = time.monotonic()
 
     def _watchdog_cb(self):
         with self._lock:
-            if time.time() - self._last_cmd > self.timeout:
+            if time.monotonic() - self._last_cmd > self.timeout:
                 self._v_target['left'] = 0.0
                 self._v_target['right'] = 0.0
 
@@ -254,6 +298,7 @@ class MotorDriver(Node):
             dt = now - self._last_odom
             self._last_odom = now
             counts = dict(self._counts)
+            invalid = dict(self._invalid)
             targets = dict(self._v_target)
         dt = max(dt, 1e-6)
 
@@ -264,10 +309,24 @@ class MotorDriver(Node):
             self._prev_counts[wheel] = counts[wheel]
             meas[wheel] = d / dt / self.wheel_ticks[wheel] * self.wheel_sign[wheel]
 
+        # Wheel acceleration limiter, preserving the relative target change.
+        # Explicit zero commands stop immediately; safety stop is not ramped.
+        if all(abs(targets[w]) < 1e-12 for w in ('left','right')):
+            self._limited_targets = {'left': 0.0, 'right': 0.0}
+        else:
+            change = max(abs(targets[w]-self._limited_targets[w]) for w in ('left','right'))
+            fraction = min(1.0, self.max_wheel_accel*dt/max(change,1e-12))
+            for w in ('left','right'):
+                self._limited_targets[w] += fraction*(targets[w]-self._limited_targets[w])
+        targets = dict(self._limited_targets)
+        self._target_pub.publish(Float32MultiArray(data=[targets['left'],targets['right']]))
         # optional PI feedback on wheel speed
         for wheel in ('left', 'right'):
             duty = self._v_to_duty(targets[wheel])
-            if self.use_pid:
+            if abs(targets[wheel]) < self.deadband:
+                self._integ[wheel] = 0.0
+                duty = 0.0
+            elif self.use_pid:
                 err = targets[wheel] - meas[wheel]
                 self._integ[wheel] = max(min(
                     self._integ[wheel] + err * dt * self.ki, 25.0), -25.0)
@@ -276,14 +335,11 @@ class MotorDriver(Node):
             with self._lock:
                 self._duty[wheel] = duty
 
-        # integrate pose
-        vl = meas['left']
-        vr = meas['right']
-        v = (vl + vr) / 2.0
-        w = (vr - vl) / self.wheel_sep
-        self._th += w * dt
-        self._x += v * math.cos(self._th) * dt
-        self._y += v * math.sin(self._th) * dt
+        # Exact planar differential-drive integration, matching simulation geometry.
+        vl = meas['left']; vr = meas['right']
+        v,w = self.model.forward(vl,vr)
+        self._x,self._y,self._th = self.model.integrate(
+            (self._x,self._y,self._th),vl*dt,vr*dt)
 
         # publish
         now = self.get_clock().now()
@@ -320,9 +376,16 @@ class MotorDriver(Node):
         for wheel in ('left', 'right'):
             js.name.append(self.joint_names[wheel])
             pos = counts[wheel] / self.wheel_ticks[wheel] * self.wheel_sign[wheel]
-            js.position.append(pos)  # meters of wheel travel
-            js.velocity.append(meas[wheel])
+            js.position.append(pos / self.wheel_radius)  # radians
+            js.velocity.append(meas[wheel] / self.wheel_radius)  # rad/s
         self._joint_pub.publish(js)
+        # Preserve the read-only monitor's raw electrical sign and E1/E2 order.
+        raw = [-counts[wheel] for wheel in self._encoder_order]
+        self._raw_enc_pub.publish(Int64MultiArray(data=raw))
+        self._raw_rate_pub.publish(Float64MultiArray(data=[(raw[i]-self._raw_previous[i])/dt for i in (0,1)]))
+        self._invalid_pub.publish(Int64MultiArray(data=[invalid[wheel] for wheel in self._encoder_order]))
+        self._drops_pub.publish(Int64MultiArray(data=[self._event_drops]))
+        self._raw_previous = raw
 
     @staticmethod
     def _yaw_to_quat(yaw):
@@ -336,43 +399,66 @@ class MotorDriver(Node):
     def _ctrl_loop(self):
         period = 1.0 / self.pwm_freq
         t0 = time.time()
-        while self._running:
-            now = time.time() - t0
-            phase = now % period
+        try:
+            while self._running:
+                now = time.time() - t0
+                phase = now % period
 
-            with self._lock:
-                duty = dict(self._duty)
+                with self._lock:
+                    duty = dict(self._duty)
+                    if time.monotonic() - self._last_cmd > self.timeout:
+                        duty = {'left': 0.0, 'right': 0.0}
 
-            # drive wheels
-            for wheel in ('left', 'right'):
-                cfg = self.wheel_pins[wheel]
-                in1, in2 = cfg['in1'], cfg['in2']
-                d = duty[wheel]
-                if d > 0:
-                    pwm_pin = in2 if cfg['fwd_in'] == 2 else in1
-                elif d < 0:
-                    pwm_pin = in1 if cfg['fwd_in'] == 2 else in2
-                    d = -d
-                else:
-                    self._write_pin(in1, 0)
-                    self._write_pin(in2, 0)
+                # drive wheels
+                for wheel in ('left', 'right'):
+                    cfg = self.wheel_pins[wheel]
+                    in1, in2 = cfg['in1'], cfg['in2']
+                    d = duty[wheel]
+                    if self._hardware_pwm is not None:
+                        self._hardware_pwm.drive(in1, in2, d, cfg['fwd_in'])
+                        continue
+                    if d > 0:
+                        pwm_pin = in2 if cfg['fwd_in'] == 2 else in1
+                    elif d < 0:
+                        pwm_pin = in1 if cfg['fwd_in'] == 2 else in2
+                        d = -d
+                    else:
+                        self._write_pin(in1, 0)
+                        self._write_pin(in2, 0)
+                        continue
+                    on = period * d / 100.0
+                    level = 1 if phase < on else 0
+                    self._write_pin(pwm_pin, level)
+                    self._write_pin(in1 if pwm_pin == in2 else in2, 0)
+
+                if self._encoder_events is not None:
+                    counts,invalid,dropped=self._encoder_events.read()
+                    with self._lock:
+                        for i,wheel in enumerate(self._encoder_order):
+                            self._counts[wheel]=counts[i]
+                            self._invalid[wheel]=invalid[i]
+                        self._event_drops=dropped
                     continue
-                on = period * d / 100.0
-                level = 1 if phase < on else 0
-                self._write_pin(pwm_pin, level)
-                self._write_pin(in1 if pwm_pin == in2 else in2, 0)
-
-            # sample encoders (4x quadrature)
-            for wheel, st in self._enc_state.items():
-                pa, pb = st['pins']
-                state = self._read_pair(pa, pb)
-                last = st['last']
-                if state != last:
-                    step = _QUAD_TRANS.get((last, state))
-                    if step:
-                        with self._lock:
-                            self._counts[wheel] += step
-                    st['last'] = state
+                # sample encoders (legacy polling)
+                for wheel, st in self._enc_state.items():
+                    pa, pb = st['pins']
+                    state = self._read_pair(pa, pb)
+                    last = st['last']
+                    if state != last:
+                        step = _QUAD_TRANS.get((last, state))
+                        if step:
+                            with self._lock:
+                                self._counts[wheel] += step
+                        else:
+                            with self._lock:
+                                self._invalid[wheel] += 1
+                        st['last'] = state
+        except Exception as exc:
+            self.get_logger().error('Motor control loop stopped: %s' % exc)
+            self._running = False
+        finally:
+            if self._hardware_pwm is not None:
+                self._hardware_pwm.stop()
 
     # ---- shutdown ----
 
@@ -380,8 +466,12 @@ class MotorDriver(Node):
         self._running = False
         if self._ctrl_thread.is_alive():
             self._ctrl_thread.join(timeout=1.0)
+        if self._hardware_pwm is not None:
+            self._hardware_pwm.stop()
+        if self._encoder_events is not None:
+            self._encoder_events.close()
         # explicit safe state; do NOT GPIO.cleanup() (see module docstring)
-        for pin in self.motor_pins.values():
+        for pin in self._out_fds:
             try:
                 os.pwrite(self._out_fds[pin], b'0', 0)
             except OSError:

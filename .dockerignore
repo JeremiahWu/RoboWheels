@@ -55,3 +55,12 @@ vgcore.*
 *.bag
 *.db3
 *.mcap
+
+# Local runtime handles and temporary recordings
+*.pid
+*.pid.lock
+*.sock
+tmp
+rosbag2_*
+*.db3-shm
+*.db3-wal

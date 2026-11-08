@@ -1,0 +1,22 @@
+# Real robot telemetry only: no virtual controllers, no /cmd_vel publisher.
+services:
+  rdk-debug:
+    image: robowheels:xquartz-humble
+    init: true
+    entrypoint: ["/bin/bash", "/debug/entrypoint.sh"]
+    environment:
+      ROBOWHEELS_DEBUG_DISPLAY: "${ROBOWHEELS_DEBUG_DISPLAY:-web}"
+      ROS_DOMAIN_ID: "0"
+      ROS_LOCALHOST_ONLY: "1"
+      DISPLAY: host.docker.internal:99
+      XAUTHORITY: /run/xquartz/Xauthority
+      LIBGL_ALWAYS_SOFTWARE: "1"
+      QT_X11_NO_MITSHM: "1"
+    volumes:
+      - ./.local/x11/Xauthority:/run/xquartz/Xauthority:ro
+      - ./ros2_ws/src/robowheels/config/rviz/rdk_debug.rviz:/debug/rdk_debug.rviz:ro
+      - ./scripts/ros_topic_stream.py:/debug/ros_topic_stream.py:ro
+      - ./docker/sim/rdk-debug-entrypoint.sh:/debug/entrypoint.sh:ro
+    ports:
+      - "127.0.0.1:16081:6080"
+    shm_size: 1g

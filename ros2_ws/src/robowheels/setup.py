@@ -19,10 +19,12 @@ setup(
         ]),
         ('share/' + package_name + '/config/rviz', [
             'config/rviz/perception.rviz',
+            'config/rviz/rdk_debug.rviz',
         ]),
         ('share/' + package_name + '/launch', [
             'launch/motor.launch.py',
             'launch/joy.launch.py',
+            'launch/teleop.launch.py',
             'launch/astra_camera.launch.py',
             'launch/gs130.launch.py',
             'launch/stereo_pointcloud.launch.py',

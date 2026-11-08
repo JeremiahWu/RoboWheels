@@ -1,36 +1,32 @@
 motor_driver:
   ros__parameters:
-    # ---- robot geometry (from Orange Pi 3 LTS build, see HARDWARE.md) ----
-    # NOTE: values carried over from the OPi 3 LTS calibration.  The
-    # ticks/meter numbers belong to the OPi sampling loop - re-verify on
-    # the RDK X5 with tools/encoder_test.py drive mode.
-    wheel_radius: 0.0318                     # circumference 0.20 m
-    wheel_separation: 0.155                  # wheel-center distance (m)
-    ticks_per_meter_left: 1679.0             # 4x quadrature, measured at WHEEL
-    ticks_per_meter_right: 1656.0
+    # ---- geometry: wheel radius from STEP; encoder distance calibration below ----
+    # Wheel radius follows STEP. Encoder ticks/m must be measured on X5;
+    # manual turn calibration: tools/calibrate_encoder_turns.py.
+    wheel_radius: 0.0332                     # STEP diameter 66.4 mm; circumference 0.208602 m
+    wheel_separation: 0.15631239107433037                  # STEP/simulation wheel-center distance (m)
+    ticks_per_meter_left: 11965.383673414783             # MC130 1:48 datasheet / STEP circumference; empirical validation pending
+    ticks_per_meter_right: 11965.383673414783
+    encoder_ticks_per_revolution_left: 2496.0
+    encoder_ticks_per_revolution_right: 2496.0
+    encoder_calibration_status: mc130_48_datasheet_step_geometry_ground_check_pending
     encoder_sign_left: 1                     # -1 flips odom sign for the wheel
     encoder_sign_right: 1
 
     # ---- channel <-> wheel mapping ----
-    # UNVERIFIED on the X5 wiring: on the OPi 3 LTS build A channel drove
-    # the RIGHT wheel and the encoders were crossed.  Run
-    #   python3 tools/motor_test.py L fwd    /   R fwd
-    #   python3 tools/encoder_test.py watch
-    # and fix the four values below to match reality.
+    # Verified 2026-11-08: A=right, B=left; E1=B, E2=A.
+    # A uses IN2 for vehicle forward; B uses IN1.
     channel_a_wheel: right                   # AT8236 channel A (AIN1=27 AIN2=29)
     channel_b_wheel: left                    # AT8236 channel B (BIN1=31 BIN2=33)
     encoder1_wheel: left                     # E1A=11 E1B=13
     encoder2_wheel: right                    # E2A=15 E2B=16
-    # forward = which IN gets PWM (verified AT8236 truth table):
-    #   forward  = IN2 PWM, IN1 LOW  -> 2
-    #   backward = IN1 PWM, IN2 LOW
-    channel_a_forward_input: 2
-    channel_b_forward_input: 2
+    # Vehicle forward uses IN2 on A and IN1 on B (verified by observation).
+    channel_a_forward_input: 2                 # right wheel forward verified
+    channel_b_forward_input: 1                 # left wheel forward verified
 
     # ---- pins (BOARD numbering, RDK X5 40PIN, verified 2026-09-10) ----
     # motors: AIN1=27 AIN2=29 BIN1=31 BIN2=33 (all four also have hardware
-    # PWM functions pwmchip0/4/6, but the DT routes them elsewhere today;
-    # we use software PWM)
+    # PWM functions selected in the current DT; use hardware backend)
     # encoders: E1A=11 E1B=13 E2A=15 E2B=16 (plain GPIO on gpiochip379)
     motor_pin_ain1: 27
     motor_pin_ain2: 29
@@ -42,13 +38,17 @@ motor_driver:
     encoder_pin_e2b: 16
 
     # ---- limits ----
-    max_pwm: 40                              # % duty, conservative until tested
-    max_linear_velocity: 0.5                 # m/s
+    max_pwm: 20                              # % duty, user limit 2026-11-08
+    max_wheel_linear_velocity: 0.3           # curvature-preserving wheel speed limit
+    max_wheel_acceleration: 0.5             # m/s^2, same limit as simulation
+    max_linear_velocity: 0.3                 # m/s
     max_angular_velocity: 2.0                # rad/s
     linear_deadband: 0.01                    # m/s, below -> stop
 
     # ---- control ----
-    pwm_frequency: 200                       # Hz software PWM
+    encoder_backend: events                  # queued GPIO v2 edges, not polling
+    motor_backend: hardware                  # tested X5 hardware PWM
+    pwm_frequency: 200                       # Hz; 15% tested both directions
     cmd_vel_topic: /cmd_vel
     cmd_vel_timeout: 0.5                     # s, no update -> stop
     use_pid: false                           # true: encoder PI on wheel speed

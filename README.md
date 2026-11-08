@@ -6,6 +6,10 @@ RoboWheels 是一个两轮差速、双机械臂机器人项目，包含 RDK X5 �
 
 两套真机的连接关系见 **[RDK X5 与 Orange Pi 3 LTS 接线图](docs/hardware/WIRING.md)**，包含电机、编码器、传感器及未确认的供电项。
 
+真机远程调试：**[X5 传感器接入 Mac RViz](docs/hardware/DEBUG_X5.md)**（浏览器 RViz、180° 图像显示、IMU、点云与 A/B 编码器，只读 SSH 转发）。
+
+真机差速模型：**[STEP + MC130 几何与编码器参数](docs/hardware/BASE_MODEL.md)**（轮径 66.4mm、轮距 156.312mm、2496 ticks/圈）。
+
 ## 运行模式
 
 Mac 原生窗口入口：**[XQuartz + VirtualGL 原生 RViz2](docs/simulation/XQUARTZ.md)**。可以直接在 RViz 窗口的控制面板中执行双臂轨迹、驾驶差速底盘并查看位置反馈。
@@ -143,7 +147,7 @@ docker compose -f compose.control.yaml exec control bash -lc 'source /ws/install
 | 子系统 | 硬件 / 软件 | 当前记录 |
 |---|---|---|
 | 底盘 | TT 电机 ×2、AT8236、正交编码器 ×2；`motor_driver` | 节点已验证，电机/编码器映射及里程计参数仍需实车核对 |
-| 手柄 | DragonRise；`joy` + `teleop_twist_joy` | 已验证，发布 `/cmd_vel` |
+| 手柄 | Xbox 360 兼容；`joy_linux` + `teleop_twist_joy` | 已验证，发布 `/cmd_vel` |
 | RGB 相机 | Orbbec Astra Pro USB；`astra_rgb_node` | UVC RGB 已出图，约 30 fps |
 | 双目与 IMU | GS130WI MIPI；`gs130_vio_bridge` | 双目与 IMU 数据已发布，预留 VIO 接入 |
 | 立体点云 | CPU SGBM；`stereo_pointcloud_node` | 实测约 3.7 Hz；BPU 路线可选 `hobot_stereonet` |
@@ -172,7 +176,7 @@ ros2 launch robowheels gs130.launch.py
 ros2 launch robowheels astra_camera.launch.py use_sdk:=false
 ```
 
-手柄操作：按住 RB（键 5）使能，左摇杆前后控制行进，右摇杆左右控制转向。
+手柄操作：按住 RB（键 5）使能，左摇杆前后控制行进，右摇杆左右控制转向。线速度指令上限 **0.3 m/s**，电机 PWM 上限 **20%**。启动和实测记录见 [X5 手柄控制](docs/hardware/TELEOP_X5.md)。
 
 ### 真机 Docker
 
