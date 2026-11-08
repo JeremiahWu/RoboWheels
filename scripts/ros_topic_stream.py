@@ -45,13 +45,25 @@ def upright_image(msg):
 
 def receive(node):
     from visualization_msgs.msg import Marker
+    from geometry_msgs.msg import TransformStamped
+    from tf2_ros import StaticTransformBroadcaster
+    # Viewer-only reference for the physically upside-down camera mounting.
+    # camera_link uses forward/left/up axes, so roll 180 degrees about X.
+    view_tf = StaticTransformBroadcaster(node)
+    upright_tf = TransformStamped()
+    upright_tf.header.stamp = node.get_clock().now().to_msg()
+    upright_tf.header.frame_id = 'camera_link'
+    upright_tf.child_frame_id = 'rdk_debug_upright'
+    upright_tf.transform.rotation.x = 1.0
+    upright_tf.transform.rotation.w = 0.0
+    view_tf.sendTransform(upright_tf)
     from geometry_msgs.msg import Point
     markers=node.create_publisher(Marker,'/rdk_debug/imu',10)
     encoder_markers=node.create_publisher(Marker,'/rdk_debug/encoders',10)
     pubs={};count={};views={};stereo={};wheel_speeds=None;wheel_targets=None
     from sensor_msgs.msg import Image
     stereo_pub=node.create_publisher(Image,'/rdk_debug/stereo/upright',qos('/cam0/image_raw'))
-    display_topics={'/cam0/image_raw':'/rdk_debug/cam0/upright','/cam1/image_raw':'/rdk_debug/cam1/upright','/stereo/depth':'/rdk_debug/depth/upright'}
+    display_topics={'/perception/orb_features':'/rdk_debug/orb/upright','/cam0/image_raw':'/rdk_debug/cam0/upright','/cam1/image_raw':'/rdk_debug/cam1/upright','/stereo/depth':'/rdk_debug/depth/upright'}
     def exact(size):
         data=bytearray()
         while len(data)<size:
