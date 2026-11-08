@@ -7,7 +7,7 @@ RoboWheels 两轮差速底盘在 RDK X5 上的完整控制与感知节点。
 
 | 节点 | 功能 | 验证状态 |
 |---|---|---|
-| `motor_driver` | AT8236 双通道软 PWM + 编码器 4x 解码 + /odom + TF + /wheel_speeds + /joint_states，/cmd_vel watchdog | ✅ 启动/话题验证（电机运动测试待实车） |
+| `motor_driver` | AT8236 双通道硬件 PWM + 编码器 4x 解码 + /odom + TF + /wheel_speeds + /joint_states，/cmd_vel watchdog | 已验证正反转与编码器；轮速闭环尚未整定 |
 | `astra_rgb_node` | Astra Pro RGB（UVC/OpenCV，无 SDK 依赖）→ /astra/rgb/image_raw + camera_info | ✅ 30fps 出图 |
 | `gs130_vio_bridge` | GS130WI（mipi_cam 驱动后）：左右目 nv12→mono8 → /cam0 /cam1 image_raw + camera_info、/imu_data→/imu0、静态 TF | ✅ 双目+IMU 全部出数据 |
 | `stereo_pointcloud_node` | GS130WI 双目 SGBM 立体匹配 → /stereo/points + /stereo/depth（32FC1 米）+ /stereo/disparity + TF；参数 config/stereo_pc.yaml（含实测标定） | ✅ 真机 3.7Hz 实测 |
@@ -27,13 +27,13 @@ source ~/RoboWheels/ros2_ws/install/setup.bash
 ## 启动
 
 ```bash
-# 全部（底盘 + 手柄 + 双目 + Astra）
+# 默认仅 GS130WI；其他硬件显式启用
 ros2 launch robowheels bringup.launch.py
 
 # 单独
 ros2 launch robowheels motor.launch.py           # 底盘
 ros2 launch robowheels joy.launch.py             # 手柄
-ros2 launch robowheels gs130.launch.py           # 双目IMU (VIO 话题)
+ros2 launch robowheels gs130.launch.py mipi_lpwm_enable:=true  # EXT 同步双目/IMU
 ros2 launch robowheels astra_camera.launch.py    # Astra (SDK)
 ros2 launch robowheels astra_camera.launch.py use_sdk:=false   # Astra RGB 兜底
 ```
@@ -62,7 +62,7 @@ ros2 launch robowheels astra_camera.launch.py use_sdk:=false   # Astra RGB 兜�
 - 控制入：`/cmd_vel`（Twist）
 - 底盘出：`/odom`（nav_msgs/Odometry）、`/tf`（odom→base_footprint）、
   `/wheel_speeds`（[v_left, v_right] m/s）、`/joint_states`
-- VIO（GS130）：`/cam0/image_raw` `/cam1/image_raw`（mono8 816x640）、
+- VIO（GS130）：`/cam0/image_raw` `/cam1/image_raw`（mono8 816x960；BPU 链路为 544x448）、
   `/cam0/camera_info` `/cam1/camera_info`、`/imu0`（~100Hz）
 - Astra：`/astra/rgb/image_raw` + camera_info（SDK 驱动还有
   /color /depth /ir 话题族）
@@ -94,3 +94,7 @@ docker compose up -d      # 默认 bash 交互；command 可改成 bringup
 容器内的 uv 环境：`/opt/venv`（--system-site-packages，ROS python 栈
 rclpy/cv_bridge/cv2 来自 apt 保持可见；entrypoint 会把 venv 的
 site-packages 加进 PYTHONPATH 供系统 python3 运行的 ros2 CLI 使用）。
+
+## BPU、ORB 与 ESDF
+
+`ros2 launch robowheels navigation_bpu.launch.py` 启动 StereoNet BPU 深度、ORB 视觉里程计、二维 ESDF 和路径预览，不启动底盘。VIO 的 IMU 融合待标定，不能把 VO 当作 VIO。详见 [运行说明](../../../docs/navigation/RDK_X5_NAVIGATION.md) 与 [相机—IMU 标定指南](../../../docs/navigation/GS130WI_IMU_CALIBRATION.md)。

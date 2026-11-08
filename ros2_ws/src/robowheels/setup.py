@@ -1,11 +1,11 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 package_name = 'robowheels'
 
 setup(
     name=package_name,
     version='0.2.0',
-    packages=[package_name],
+    packages=find_packages(exclude=["test", "test.*"]),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -29,6 +29,9 @@ setup(
             'launch/gs130.launch.py',
             'launch/stereo_pointcloud.launch.py',
             'launch/bringup.launch.py',
+            'launch/navigation_preview.launch.py',
+            'launch/navigation_bpu.launch.py',
+            'launch/vio.launch.py',
             'launch/rviz_perception.launch.py',
         ]),
         ('share/' + package_name + '/udev', [
@@ -43,10 +46,14 @@ setup(
     license='MIT',
     entry_points={
         'console_scripts': [
-            'motor_driver = robowheels.motor_driver:main',
-            'astra_rgb_node = robowheels.astra_rgb_node:main',
-            'gs130_vio_bridge = robowheels.gs130_vio_bridge:main',
-            'stereo_pointcloud_node = robowheels.stereo_pointcloud_node:main',
+            'stereonet_adapter = robowheels.perception.stereonet_adapter:main',
+            'orb_odometry_node = robowheels.localization.orb_odometry_node:main',
+            'local_map_node = robowheels.perception.local_map_node:main',
+            'planning_node = robowheels.planning.planning_node:main',
+            'motor_driver = robowheels.base.motor_driver:main',
+            'astra_rgb_node = robowheels.sensors.astra_rgb_node:main',
+            'gs130_vio_bridge = robowheels.sensors.gs130_vio_bridge:main',
+            'stereo_pointcloud_node = robowheels.perception.stereo_pointcloud_node:main',
         ],
     },
 )

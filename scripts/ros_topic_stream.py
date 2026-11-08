@@ -8,7 +8,7 @@ import rclpy
 from rclpy.serialization import serialize_message, deserialize_message
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 from rosidl_runtime_py.utilities import get_message
-TOPICS = {'/cam0/image_raw','/cam1/image_raw','/cam0/camera_info','/cam1/camera_info',
+TOPICS = {'/localization/vo','/localization/vo_path','/localization/status','/perception/orb_features','/perception/esdf','/perception/local_grid','/perception/status','/planning/path','/planning/status','/cam0/image_raw','/cam1/image_raw','/cam0/camera_info','/cam1/camera_info',
           '/rdk_debug/encoder_counts','/rdk_debug/encoder_rates','/rdk_debug/encoder_invalid','/rdk_debug/encoder_event_drops',
           '/imu0','/imu_data','/stereo/points','/stereo/depth',
           '/StereoNetNode/stereonet_pointcloud2','/StereoNetNode/rectify_left_image',

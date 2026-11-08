@@ -150,7 +150,7 @@ docker compose -f compose.control.yaml exec control bash -lc 'source /ws/install
 | 手柄 | Xbox 360 兼容；`joy_linux` + `teleop_twist_joy` | 已验证，发布 `/cmd_vel` |
 | RGB 相机 | Orbbec Astra Pro USB；`astra_rgb_node` | UVC RGB 已出图，约 30 fps |
 | 双目与 IMU | GS130WI MIPI；`gs130_vio_bridge` | 双目与 IMU 数据已发布，预留 VIO 接入 |
-| 立体点云 | CPU SGBM；`stereo_pointcloud_node` | 实测约 3.7 Hz；BPU 路线可选 `hobot_stereonet` |
+| 立体深度与点云 | BPU `hobot_stereonet` + 适配节点；CPU SGBM 备用 | BPU 深度已实机运行；详见导航说明 |
 | 双臂舵机 | LewanSoul LX-15D / LD-27MG；UART1 | 真机通信排查暂停，尚未接入本文的 ros2_control 虚拟接口 |
 
 ### 原生启动
@@ -201,13 +201,19 @@ docker run -it --rm --privileged --network host \
 
 8/10 脚是 UART1。当前电机使用软件 PWM；首次运行前需用 `tools/motor_test.py` 和 `tools/encoder_test.py` 核对电机/编码器归属、转向和里程计标定。
 
-Astra Pro 的 IR/深度仍有 SDK 与固件兼容问题；VIO 算法尚需按鱼眼模型配置。感知 RViz、完整话题、标定与排查步骤见 [真机包说明](ros2_ws/src/robowheels/README.md) 和 [HARDWARE.md](HARDWARE.md)。
+Astra Pro 的 IR/深度仍有 SDK 与固件兼容问题；VIO 的 IMU 融合仍需相机—IMU 外参与时间偏移标定。感知 RViz、完整话题、标定与排查步骤见 [真机包说明](ros2_ws/src/robowheels/README.md) 和 [HARDWARE.md](HARDWARE.md)。
 
 真机控制约束：
 
 - 电机引脚启动时先置 `OUTPUT LOW`；退出时只置 LOW，禁止调用 `GPIO.cleanup()`，避免 AT8236 输入悬空。
 - `/cmd_vel` 500 ms 无更新自动停车。
 - 参数统一放在 `config/*.yaml`，硬件映射与标定结果同步记录到 `HARDWARE.md`。
+
+## 定位、感知与规划预览
+
+已按底盘、传感器、定位、感知和规划整理真机 Python 模块。新增 `navigation_bpu.launch.py` 运行 StereoNet BPU 深度、ORB 视觉里程计、二维 ESDF 及路径预览；不驱动底盘。VIO 提供 `hobot_vio` 接入入口，仍需 GS130WI 相机—IMU 标定，尚未验证定位输出。运行方式与限制见 [X5 导航说明](docs/navigation/RDK_X5_NAVIGATION.md)，标定步骤见 [相机—IMU 标定指南](docs/navigation/GS130WI_IMU_CALIBRATION.md)，架构参考见 [TinyNav 评估](docs/navigation/TINYNAV.md)。
+
+`bringup.launch.py` 默认只启动 GS130WI，使用已接好的 EXT 同步线；电机与手柄需显式启用，或继续使用 `teleop.launch.py`。
 
 ## 目录结构
 
