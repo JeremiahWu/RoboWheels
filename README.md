@@ -4,6 +4,8 @@ RoboWheels 是一个两轮差速、双机械臂机器人项目，包含 RDK X5 �
 
 项目使用 ROS 2 Humble。机械装配由 STEP 转换为 URDF/SDF 和 STL；在 Mac Docker 中，可以查看机器人模型、驾驶差速底盘、执行双臂关节轨迹，并检查位置反馈与坐标变换。
 
+两套真机的连接关系见 **[RDK X5 与 Orange Pi 3 LTS 接线图](docs/hardware/WIRING.md)**，包含电机、编码器、传感器及未确认的供电项。
+
 ## 运行模式
 
 Mac 原生窗口入口：**[XQuartz + VirtualGL 原生 RViz2](docs/simulation/XQUARTZ.md)**。可以直接在 RViz 窗口的控制面板中执行双臂轨迹、驾驶差速底盘并查看位置反馈。
