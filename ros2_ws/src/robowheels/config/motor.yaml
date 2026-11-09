@@ -2,7 +2,7 @@ motor_driver:
   ros__parameters:
     # ---- geometry: wheel radius from STEP; encoder distance calibration below ----
     # Wheel radius follows STEP. Encoder ticks/m must be measured on X5;
-    # manual turn calibration: tools/calibrate_encoder_turns.py.
+    # manual turn calibration: tools/hardware/base/calibrate_encoder_turns.py.
     wheel_radius: 0.0332                     # STEP diameter 66.4 mm; circumference 0.208602 m
     wheel_separation: 0.15631239107433037                  # STEP/simulation wheel-center distance (m)
     ticks_per_meter_left: 11965.383673414783             # MC130 1:48 datasheet / STEP circumference; empirical validation pending

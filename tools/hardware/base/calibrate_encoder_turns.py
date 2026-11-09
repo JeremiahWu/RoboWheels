@@ -28,7 +28,7 @@ def main():
         if len(values)>=12 and invalid:break
     n.destroy_node();rclpy.shutdown()
     if len(values)<5 or any(v!=values[-1] for v in values[-5:]):raise RuntimeError('No stable encoder sample; stop wheels and retry')
-    output=Path(__file__).resolve().parents[1]/'.local/validation/manual_encoder_turns.json'
+    output=Path(__file__).resolve().parents[3]/'.local/validation/manual_encoder_turns.json'
     output.parent.mkdir(parents=True,exist_ok=True)
     data=json.loads(output.read_text()) if output.exists() else {}
     now=values[-1]

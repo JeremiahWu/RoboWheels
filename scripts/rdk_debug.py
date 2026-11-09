@@ -10,6 +10,10 @@ import time
 ROOT=Path(__file__).resolve().parents[1]
 LOCAL=ROOT/'.local/rdk-debug'
 COMPOSE=['docker','compose','-f',str(ROOT/'compose.rdk-debug.yaml')]
+def default_host():
+    configured=ROOT/'.local/config/rdk-host'
+    return os.environ.get('ROBOWHEELS_RDK_HOST') or (configured.read_text().strip() if configured.is_file() else 'root@rdkx5.local')
+
 SSH=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=5','-o','ServerAliveInterval=5','-o','ServerAliveCountMax=2']
 def running():
     try:
@@ -38,7 +42,7 @@ def relay(host):
             except subprocess.TimeoutExpired:proc.kill();proc.wait()
         print('Telemetry disconnected; retrying in 3 seconds',flush=True);time.sleep(3)
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('command',choices=['start','stop','status','_relay']);p.add_argument('--host',default='root@192.168.124.24');a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('command',choices=['start','stop','status','_relay']);p.add_argument('--host',default=default_host());a=p.parse_args()
     if a.command=='_relay':relay(a.host);return
     LOCAL.mkdir(parents=True,exist_ok=True)
     pid=running()

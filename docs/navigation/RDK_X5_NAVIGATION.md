@@ -82,9 +82,9 @@ ros2 topic pub --once /goal_pose geometry_msgs/msg/PoseStamped \
 X5 source 工作区后，在仓库根目录：
 
 ```bash
-python3 tools/validate_orb_esdf.py
-python3 tools/validate_navigation_grid.py
-python3 tools/validate_planning_preview.py
+python3 tools/validation/validate_orb_esdf.py
+python3 tools/validation/validate_navigation_grid.py
+python3 tools/validation/validate_planning_preview.py
 ```
 
 检查包括合成平面上的已知位移尺度、静止帧、失跟踪、时间倒序、ESDF 符号和单位、障碍绕行、未知区拒绝、ROS 坐标系不匹配与过期路径清空。ROS 规划测试使用独立 `/validation/*` 话题，不接触真实目标或电机。

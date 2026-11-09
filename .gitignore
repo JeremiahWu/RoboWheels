@@ -85,3 +85,11 @@ vgcore.*
 /.uv/
 /tmp/
 /rosbag2_*/
+
+# Per-machine serial paths and per-robot calibration: commit *.example.json only.
+ros2_ws/src/robowheels/config/arms/*.local.json
+ros2_ws/src/robowheels/config/servo_bridge.json
+ros2_ws/src/robowheels/config/servo_zero_offsets.json
+/calibration/
+/recordings/
+/reports/

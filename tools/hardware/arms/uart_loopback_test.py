@@ -5,7 +5,7 @@ Purpose: prove the board-side UART works, independent of the bus-servo
 controller wiring.  Short pins 8 (TX) and 10 (RX) with a jumper wire,
 then run:
 
-    python3 tools/uart_loopback_test.py [baud]
+    python3 tools/hardware/arms/uart_loopback_test.py [baud]
 
 Success = every byte sent is received back.  If this passes but the
 servo controller does not answer (see servo_bus_test.py), the problem

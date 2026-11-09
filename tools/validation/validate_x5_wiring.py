@@ -30,8 +30,8 @@ def main():
     enc = (11, 13, 15, 16)
     from pathlib import Path
     import sys
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]/"ros2_ws/src/robowheels"))
-    from robowheels.hardware_pwm import MotorPWM
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]/"ros2_ws/src/robowheels"))
+    from robowheels.base.hardware_pwm import MotorPWM
     outputs = {}; inputs = {}; hardware = None
     def halt(*_):
         raise KeyboardInterrupt

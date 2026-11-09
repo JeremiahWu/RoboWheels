@@ -2,4 +2,7 @@
   <class name="robowheels_rviz_plugins/ControlPanel" type="robowheels_rviz_plugins::ControlPanel" base_class_type="rviz_common::Panel">
     <description>Arm trajectory actions, differential drive and live joint feedback.</description>
   </class>
+  <class name="robowheels_rviz_plugins/PhysicalArmPanel" type="robowheels_rviz_plugins::PhysicalArmPanel" base_class_type="rviz_common::Panel">
+    <description>Measured USB servo feedback and bounded single-joint physical jog controls.</description>
+  </class>
 </library>

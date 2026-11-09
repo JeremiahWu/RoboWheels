@@ -3,11 +3,12 @@
 <package format="3">
   <name>robowheels</name>
   <version>0.2.0</version>
-  <description>RoboWheels differential-drive base controller (RDK X5 + AT8236 + GS130WI + Astra Pro)</description>
+  <description>RoboWheels differential base, stereo navigation, bus-servo arms and Astra Pro sensors</description>
   <maintainer email="wuruihao629@outlook.com">Wu Ruihao</maintainer>
   <license>MIT</license>
 
   <exec_depend>rclpy</exec_depend>
+  <exec_depend>python3-serial</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
   <exec_depend>python3-scipy</exec_depend>
   <exec_depend>python3-opencv</exec_depend>

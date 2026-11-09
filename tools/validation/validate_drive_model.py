@@ -6,9 +6,9 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1]
+ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'ros2_ws/src/robowheels'))
-from robowheels.differential_drive import DifferentialDrive
+from robowheels.base.differential_drive import DifferentialDrive
 
 def main():
     model=DifferentialDrive()

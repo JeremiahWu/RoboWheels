@@ -75,12 +75,12 @@ ros2 launch robowheels teleop.launch.py
 
 | 工具 | 用途 |
 |---|---|
-| `tools/validate_drive_model.py` | 本地无动作测试，核对 STEP/仿真/真机几何及运动学 |
-| `tools/validate_encoder_events.py` | 本地无动作测试，核对事件解码、排序和丢失诊断 |
-| `tools/validate_joy.py` | X5 隔离话题验证摇杆映射与 RB，不接电机 |
-| `tools/validate_motor_teleop.py` | X5 架空后短时验证前后驱动、轮角与超时停机 |
-| `tools/calibrate_encoder_turns.py` | 手动转轮、记录稳定基线及每圈计数 |
-| `tools/validate_x5_wiring.py` | 独立接线排查；必须先停止电机驱动，不能与事件采样同时占用引脚 |
+| `tools/validation/validate_drive_model.py` | 本地无动作测试，核对 STEP/仿真/真机几何及运动学 |
+| `tools/validation/validate_encoder_events.py` | 本地无动作测试，核对事件解码、排序和丢失诊断 |
+| `tools/validation/validate_joy.py` | X5 隔离话题验证摇杆映射与 RB，不接电机 |
+| `tools/validation/validate_motor_teleop.py` | X5 架空后短时验证前后驱动、轮角与超时停机 |
+| `tools/hardware/base/calibrate_encoder_turns.py` | 手动转轮、记录稳定基线及每圈计数 |
+| `tools/validation/validate_x5_wiring.py` | 独立接线排查；必须先停止电机驱动，不能与事件采样同时占用引脚 |
 
 接线排查工具中的轮询仅用于观察，不作为当前标定计数。已有电机与编码器 GPIO 工具属于独立低层排查入口，运行前须核对引脚复用并停止占用它们的节点。
 

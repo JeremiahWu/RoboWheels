@@ -16,7 +16,7 @@
 
 之前曾误报为 1:90，已按用户最新确认修正。1:90 的 4680 ticks/圈不用于当前配置；手工一圈得到的约 2500 计数只作一致性检查，不覆盖手册分辨率。
 
-几何源在 `tools/cad/model_config.json`、`robowheels_description/urdf/robot_control.urdf` 与 `robowheels_sim/config/controllers.yaml`。真机配置为 `robowheels/config/motor.yaml`；`tools/validate_drive_model.py` 会校验三者的 R/B 和编码器单位换算。
+几何源在 `tools/cad/model_config.json`、`robowheels_description/urdf/robot_control.urdf` 与 `robowheels_sim/config/controllers.yaml`。真机配置为 `robowheels/config/motor.yaml`；`tools/validation/validate_drive_model.py` 会校验三者的 R/B 和编码器单位换算。
 
 ## 运动学与控制链
 
@@ -68,7 +68,7 @@ v_i = Δs_i/Δt
 
 最初 sysfs 轮询在手转五圈测试中出现约 5% 左右差异，复测同一轮又变化约 11%，因此这些值作废，没有用来校准 N。
 
-改为 Linux GPIO v2 内核边沿事件队列后，按内核时间戳合并事件，并使用逐引脚序号诊断丢失；保留 5ms 重排窗口，避免多核下全局序号到达乱序被误判为丢失。无硬件回归测试见 `tools/validate_encoder_events.py`。手转单圈记录：
+改为 Linux GPIO v2 内核边沿事件队列后，按内核时间戳合并事件，并使用逐引脚序号诊断丢失；保留 5ms 重排窗口，避免多核下全局序号到达乱序被误判为丢失。无硬件回归测试见 `tools/validation/validate_encoder_events.py`。手转单圈记录：
 
 | 轮子 | 第一次 | 重复核对 | 软件诊断 |
 |---|---:|---:|---|
@@ -94,11 +94,11 @@ v_i = Δs_i/Δt
 
 ```bash
 # Mac / 本地：无电机动作，验证模型与 STEP/仿真一致
-python3 tools/validate_drive_model.py
+python3 tools/validation/validate_drive_model.py
 
 # X5：手工一圈采样，只读计数；先暂停手柄、确保电机停机
-python3 tools/calibrate_encoder_turns.py begin left --turns 1
-python3 tools/calibrate_encoder_turns.py finish left
+python3 tools/hardware/base/calibrate_encoder_turns.py begin left --turns 1
+python3 tools/hardware/base/calibrate_encoder_turns.py finish left
 ```
 
 模型验证覆盖：正逆解往返、直行/倒车/原地旋转、保持曲率的限幅、圆弧积分、一圈到 2π rad 与周长的换算。原始测量和运行验证报告在被忽略的 `.local/validation/` 中。

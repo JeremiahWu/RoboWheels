@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "units": "servo_raw_position",
+  "reference_pose": "Calibrate this robot before enabling outputs",
+  "offset_formula": "relative_raw = current_raw - zero_raw",
+  "motion_ready": false,
+  "joints": {
+    "right_joint_1": {
+      "servo_id": 1,
+      "zero_raw": null
+    },
+    "right_joint_2": {
+      "servo_id": 2,
+      "zero_raw": null
+    },
+    "right_joint_3": {
+      "servo_id": 3,
+      "zero_raw": null
+    },
+    "right_joint_4": {
+      "servo_id": 4,
+      "zero_raw": null
+    },
+    "left_joint_1": {
+      "servo_id": 5,
+      "zero_raw": null
+    },
+    "left_joint_2": {
+      "servo_id": 6,
+      "zero_raw": null
+    },
+    "left_joint_3": {
+      "servo_id": 7,
+      "zero_raw": null
+    },
+    "left_joint_4": {
+      "servo_id": 8,
+      "zero_raw": null
+    }
+  }
+}

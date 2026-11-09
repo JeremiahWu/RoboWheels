@@ -1,6 +1,7 @@
-# robowheels — RDK X5 底盘 + 相机 ROS2 包
+# robowheels — 底盘、双目导航、舵机双臂与相机
 
-RoboWheels 两轮差速底盘在 RDK X5 上的完整控制与感知节点。
+RoboWheels 的底盘控制、双目导航、舵机双臂和相机运行模块。
+RDK X5 运行底盘与 GS130WI；Mac 原生串口接双臂，Docker ROS 显示真实反馈。
 硬件实测记录见仓库根目录 `HARDWARE.md`（所有引脚/话题/波特率结论均来自真机验证）。
 
 ## 节点
@@ -11,10 +12,10 @@ RoboWheels 两轮差速底盘在 RDK X5 上的完整控制与感知节点。
 | `astra_rgb_node` | Astra Pro RGB（UVC/OpenCV，无 SDK 依赖）→ /astra/rgb/image_raw + camera_info | ✅ 30fps 出图 |
 | `gs130_vio_bridge` | GS130WI（mipi_cam 驱动后）：左右目 nv12→mono8 → /cam0 /cam1 image_raw + camera_info、/imu_data→/imu0、静态 TF | ✅ 双目+IMU 全部出数据 |
 | `stereo_pointcloud_node` | GS130WI 双目 SGBM 立体匹配 → /stereo/points + /stereo/depth（32FC1 米）+ /stereo/disparity + TF；参数 config/stereo_pc.yaml（含实测标定） | ✅ 真机 3.7Hz 实测 |
-| `orbbec_camera`（官方 apt 包） | Astra IR/深度 | ❌ SDK v2 与老 Astra Pro 固件不兼容（实测），备选见 tools/setup_astra_ir.sh |
+| `orbbec_camera`（官方 apt 包） | Astra IR/深度 | ❌ SDK v2 与老 Astra Pro 固件不兼容（实测），备选见 tools/hardware/cameras/setup_astra_ir.sh |
 
 手柄链：joy_linux_node + teleop_twist_joy → /cmd_vel（✅ 已验证启动，Xbox 360 兼容手柄）。
-舵机 UART：暂停中，工具 tools/uart_loopback_test.py / tools/servo_bus_test.py。
+双臂：德晟 DS-SY15A ×8，YB-SD15M microUSB；`arms/` 提供协议、Mac 串口桥和 ROS 反馈桥。板载 UART1 路径仍未验证，当前使用 Mac USB。
 
 ## 环境（重要）
 
@@ -42,10 +43,10 @@ ros2 launch robowheels astra_camera.launch.py use_sdk:=false   # Astra RGB 兜�
 
 1. 车架空转（或架起轮子）后：
    ```bash
-   python3 tools/motor_test.py A fwd 20 2    # 确认 A 通道驱动哪个轮
-   python3 tools/motor_test.py B fwd 20 2
-   python3 tools/encoder_test.py watch       # 手转轮子确认编码器归属
-   python3 tools/encoder_test.py drive 20 4  # 直线跑，重标定 ticks/m
+   python3 tools/hardware/base/motor_test.py A fwd 20 2    # 确认 A 通道驱动哪个轮
+   python3 tools/hardware/base/motor_test.py B fwd 20 2
+   python3 tools/hardware/base/encoder_test.py watch       # 手转轮子确认编码器归属
+   python3 tools/hardware/base/encoder_test.py drive 20 4  # 直线跑，重标定 ticks/m
    ```
 2. 按实测修正 `config/motor.yaml`（channel_a_wheel、channel_b_wheel、
    encoder1_wheel、encoder2_wheel、encoder_sign_*、ticks_per_meter_*）

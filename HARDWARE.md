@@ -66,10 +66,10 @@ GPIO（`/sys/class/gpio/gpioN`）。全部可用 BOARD 引脚：3,5,7,8,10,11,12
 - **哪个通道驱动哪个轮、哪个编码器属于哪个轮：X5 接线未验证**
   （OPi 上是 A=右 B=左、编码器交叉）。上线前必须跑：
   ```bash
-  python3 tools/motor_test.py A fwd 20 2    # 看哪个轮转
-  python3 tools/motor_test.py B fwd 20 2
-  python3 tools/encoder_test.py watch       # 手转轮子看哪组编码器动
-  python3 tools/encoder_test.py drive 20 4  # 直线跑，重标定 ticks/m
+  python3 tools/hardware/base/motor_test.py A fwd 20 2    # 看哪个轮转
+  python3 tools/hardware/base/motor_test.py B fwd 20 2
+  python3 tools/hardware/base/encoder_test.py watch       # 手转轮子看哪组编码器动
+  python3 tools/hardware/base/encoder_test.py drive 20 4  # 直线跑，重标定 ticks/m
   ```
   然后修正 `config/motor.yaml` 的 channel_a_wheel / channel_b_wheel /
   encoder1_wheel / encoder2_wheel / encoder_sign_*，并更新本文件。
@@ -90,12 +90,14 @@ GPIO（`/sys/class/gpio/gpioN`）。全部可用 BOARD 引脚：3,5,7,8,10,11,12
 - **结论（阶段性）**：8/10 两脚的 UART 功能可用（有电平活动、内核 rx
   有计数），但当前接线/模式与控制器通信不通。按用户要求暂停实测。
 - 恢复时按顺序排查：
-  1. `python3 tools/uart_loopback_test.py`（8/10 短接跳线）→ 验证板侧
+  1. `python3 tools/hardware/arms/uart_loopback_test.py`（8/10 短接跳线）→ 验证板侧
   2. 确认 TX(8)↔控制器 RX、RX(10)↔控制器 TX **交叉**、共地、控制器供电
   3. 若仍不通：禁用 UART1 的 RS485 模式（改 DT / srpi-config），或
   4. 换 USB-TTL（CH340→/dev/ttyUSB0，udev 规则已写好 ttyUSB_servo 软链）
-- 工具：`tools/servo_bus_test.py`（LOBOT 0x55 0x55 / SCS 0xFF 0xFF 协议
-  扫描，只读指令不动作）、`tools/uart_loopback_test.py`
+- 以上为早期板载 UART 排查记录，旧通用扫描工具已退役。当前确认舵机为德晟
+  DS-SY15A，Mac + YB-SD15M microUSB 已完成八关节通信和小步验证。
+  当前只读检测工具为 `tools/hardware/arms/desheng_servo_read.py`，UART 回环工具
+  为 `tools/hardware/arms/uart_loopback_test.py`；协议与接法见 [Mac USB 调试](docs/hardware/MAC_USB_DEBUG.md)。
 
 ## GS130WI 双目 IMU 相机（MIPI，实测通过）
 
@@ -153,7 +155,7 @@ GPIO（`/sys/class/gpio/gpioN`）。全部可用 BOARD 引脚：3,5,7,8,10,11,12
   Astra Pro**：驱动能枚举设备，但初始化握手失败
   （`Device response size(0) < response header size(10), propertyId: 1000`，
   循环 reset 重试）。经典 Astra Pro 固件需要 OrbbecSDK v1 / OpenNI2 系驱动。
-  备选路径（任选，脚本见 tools/setup_astra_ir.sh）：
+  备选路径（任选，脚本见 tools/hardware/cameras/setup_astra_ir.sh）：
   1. PC 上用 OrbbecView 升级相机固件后重试 v2 驱动（推荐，一劳永逸）
   2. 源码构建 ros2_astra_camera（openni2 系，本机已装 libopenni2-0 2.2.0.33，
      还需 Orbbec 的 openni2 驱动模块）

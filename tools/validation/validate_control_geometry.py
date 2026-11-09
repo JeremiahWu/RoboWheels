@@ -5,7 +5,7 @@ import struct
 from pathlib import Path
 import numpy as np
 
-root=Path(__file__).resolve().parents[1]
+root=Path(__file__).resolve().parents[2]
 description=root/'ros2_ws/src/robowheels_description'
 report=json.loads((description/'config/control_model_report.json').read_text())
 original_report=json.loads((description/'config/conversion_report.json').read_text())

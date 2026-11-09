@@ -32,7 +32,7 @@ docker compose -f compose.sim.yaml exec sim bash -lc 'source /opt/ros/humble/set
 运行自动运动检查（会让机器人前进及转向，建议在刚启动的场景执行）：
 
 ```bash
-docker compose -f compose.sim.yaml cp tools/sim_smoke_test.py sim:/tmp/sim_smoke_test.py
+docker compose -f compose.sim.yaml cp tools/validation/sim_smoke_test.py sim:/tmp/sim_smoke_test.py
 docker compose -f compose.sim.yaml exec sim bash -lc 'source /ws/install/setup.bash; python3 /tmp/sim_smoke_test.py'
 ```
 

@@ -64,3 +64,11 @@ tmp
 rosbag2_*
 *.db3-shm
 *.db3-wal
+
+# Robot-specific calibration and recordings must not enter distributable images.
+ros2_ws/src/robowheels/config/arms/*.local.json
+ros2_ws/src/robowheels/config/servo_bridge.json
+ros2_ws/src/robowheels/config/servo_zero_offsets.json
+calibration
+recordings
+reports

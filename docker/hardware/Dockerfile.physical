@@ -1,0 +1,6 @@
+FROM robowheels:xquartz-humble
+SHELL ["/bin/bash", "-c"]
+COPY ros2_ws/src/robowheels_rviz_plugins /ws/src/robowheels_rviz_plugins
+RUN source /opt/ros/humble/setup.bash && source /ws/install/setup.bash && colcon build --symlink-install --packages-select robowheels_rviz_plugins
+ENV ROS_DOMAIN_ID=44 ROS_LOCALHOST_ONLY=1 DISPLAY=:1 LIBGL_ALWAYS_SOFTWARE=1 ROBOWHEELS_DISPLAY_MODE=browser
+ENTRYPOINT ["/bin/bash", "/physical/entrypoint.sh"]

@@ -60,7 +60,7 @@ RViz 中可拖动旋转、滚轮缩放；在 Displays 面板勾选 `Joint frames
 已记录：
 
 - [模型分组、轴线与零位定义](../../ros2_ws/src/robowheels_description/config/control_model_report.json)
-- 零位装配、关节反馈与底盘检查脚本位于 `tools/validate_control*.py`
+- 零位装配、关节反馈与底盘检查脚本位于 `tools/validation/validate_control*.py`
 - 本机验证记录位于 `.local/validation/`，不提交到 Git
 
 零位检查将拆分后的网格还原到整车坐标，与原整臂网格比较外包络；同时检查零件分配无遗漏/重复、轴向归一化以及成对轮毂轴线的一致性。控制检查通过独立正运动学计算与 TF 对比、实际 action 成功结果、位置插值反馈及取消后的保持状态进行验证。这些检查证明软件模型内部的一致性，仍需将连杆归属、实际舵机转向、零位和限位与真机逐项核对。
@@ -68,12 +68,12 @@ RViz 中可拖动旋转、滚轮缩放；在 Displays 面板勾选 `Joint frames
 ## 复现检查
 
 ```bash
-python3 tools/validate_control_geometry.py
-docker compose -f compose.control.yaml cp tools/validate_control.py control:/tmp/validate_control.py
+python3 tools/validation/validate_control_geometry.py
+docker compose -f compose.control.yaml cp tools/validation/validate_control.py control:/tmp/validate_control.py
 docker compose -f compose.control.yaml exec control bash -lc 'source /ws/install/setup.bash; python3 /tmp/validate_control.py'
 docker compose -f compose.control.yaml exec control bash -lc 'source /ws/install/setup.bash; ros2 control list_controllers'
 docker compose -f compose.control.yaml exec control bash -lc 'source /ws/install/setup.bash; ros2 control list_hardware_components'
-docker compose -f compose.control.yaml cp tools/validate_control_base.py control:/tmp/validate_control_base.py
+docker compose -f compose.control.yaml cp tools/validation/validate_control_base.py control:/tmp/validate_control_base.py
 docker compose -f compose.control.yaml exec control bash -lc 'source /ws/install/setup.bash; python3 /tmp/validate_control_base.py'
 ```
 

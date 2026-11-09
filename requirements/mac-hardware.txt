@@ -1,0 +1,3 @@
+# Mac host USB serial and optional Astra RGB capture. ROS stays in Docker.
+pyserial>=3.5,<4
+opencv-python>=4.10,<6

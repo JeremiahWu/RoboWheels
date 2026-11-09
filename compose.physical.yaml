@@ -1,0 +1,20 @@
+# Mac-native serial bridge + Docker ROS feedback and RViz. No mock controllers.
+services:
+  physical:
+    image: robowheels:physical-humble
+    build:
+      context: .
+      dockerfile: docker/hardware/Dockerfile.physical
+    init: true
+    environment:
+      ROS_DOMAIN_ID: "44"
+      ROS_LOCALHOST_ONLY: "1"
+    ports:
+      - "127.0.0.1:16082:6080"
+    volumes:
+      - ./docker/hardware/physical-entrypoint.sh:/physical/entrypoint.sh:ro
+      - ./tools/cad/physical_arm_model.py:/physical/physical_arm_model.py:ro
+      - ./ros2_ws/src/robowheels/robowheels:/physical/python/robowheels:ro
+      - ./ros2_ws/src/robowheels/config/rviz/physical_arms.rviz:/physical/physical_arms.rviz:ro
+      - ./.local/physical-arms/token:/run/servo-token:ro
+    shm_size: 1g

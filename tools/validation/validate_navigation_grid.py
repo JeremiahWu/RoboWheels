@@ -4,7 +4,7 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "ros2_ws/src/robowheels"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "ros2_ws/src/robowheels"))
 import numpy as np
 from robowheels.planning.grid import astar, inflate, ray_grid
 

@@ -51,9 +51,9 @@ python3 scripts/rdk_debug.py start
 
 ## 验证结果与精度边界
 
-- `tools/validate_joy.py` 在隔离话题验证：前/后最大指令 ±0.3、右转为负 angular.z、扳机不触发转向、RB 松开归零。
+- `tools/validation/validate_joy.py` 在隔离话题验证：前/后最大指令 ±0.3、右转为负 angular.z、扳机不触发转向、RB 松开归零。
 - 真实手柄预览：左摇杆推前产生正 linear.x，右摇杆推右产生负 angular.z；RB 松开后指令归零。
-- `tools/validate_motor_teleop.py` 以 15% 等效占空比、短时间 `/cmd_vel` 指令验证双轮前进/后退和超时停机。前进的 E1/E2 原始增量为 [-5805,-5835]，后退为 [+5127,+6092]；停止发命令后四路 enable 和 duty_cycle 均为零。
+- `tools/validation/validate_motor_teleop.py` 以 15% 等效占空比、短时间 `/cmd_vel` 指令验证双轮前进/后退和超时停机。前进的 E1/E2 原始增量为 [-5805,-5835]，后退为 [+5127,+6092]；停止发命令后四路 enable 和 duty_cycle 均为零。
 - 驱动另外验证了线速度指令钳制、20% PWM 上限和非有限输入触发停车。JointState 的轮角位置/速度已由米、米每秒换算为 rad、rad/s。
 
 **0.3 m/s 是当前线速度指令上限，尚不是经实测标定的车速保证。** 轮径和轮距已使用 STEP，编码器使用 MC130 手册分辨率，当前仍为开环占空比映射、未启用 PID。需要用实际行驶距离复核有效滚动半径和载荷下速度，才能准确验证实际车速和里程计；不能用未经标定的 `/odom` 数值直接认定整车超速或达标。

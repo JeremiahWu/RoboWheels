@@ -2,6 +2,8 @@
 
 RoboWheels 是一个两轮差速、双机械臂机器人项目，包含 RDK X5 真机软件、基于机械模型的仿真环境，以及浏览器中的 RViz 控制界面。
 
+硬件分为两层：**底部是两轮差速底盘与 GS130WI 双目/IMU 导航，上部是左右各四关节总线舵机机械臂与 Astra Pro 相机**。模块边界和部署关系见 [项目架构](docs/ARCHITECTURE.md)，新增代码与提交约定见 [开发说明](docs/DEVELOPMENT.md)。
+
 项目使用 ROS 2 Humble。机械装配由 STEP 转换为 URDF/SDF 和 STL；在 Mac Docker 中，可以查看机器人模型、驾驶差速底盘、执行双臂关节轨迹，并检查位置反馈与坐标变换。
 
 两套真机的连接关系见 **[RDK X5 与 Orange Pi 3 LTS 接线图](docs/hardware/WIRING.md)**，包含电机、编码器、传感器及未确认的供电项。
@@ -9,6 +11,8 @@ RoboWheels 是一个两轮差速、双机械臂机器人项目，包含 RDK X5 �
 真机远程调试：**[X5 传感器接入 Mac RViz](docs/hardware/DEBUG_X5.md)**（浏览器 RViz、180° 图像显示、IMU、点云与 A/B 编码器，只读 SSH 转发）。
 
 真机差速模型：**[STEP + MC130 几何与编码器参数](docs/hardware/BASE_MODEL.md)**（轮径 66.4mm、轮距 156.312mm、2496 ticks/圈）。
+
+Mac 直连舵机与 RViz 实体反馈同步：[Mac USB 双臂控制](docs/hardware/MAC_ROS_ARMS.md)（实体 noVNC 入口 16082，独立于虚拟控制环境）。
 
 ## 运行模式
 
@@ -129,12 +133,12 @@ docker compose -f compose.sim.yaml up --build -d
 
 ```bash
 # 装配几何检查需要本机 Python 与 NumPy
-python3 tools/validate_control_geometry.py
+python3 tools/validation/validate_control_geometry.py
 
 # 环境启动后，执行双臂和底盘检查（会驱动虚拟机器人）
-docker compose -f compose.control.yaml cp tools/validate_control.py control:/tmp/validate_control.py
+docker compose -f compose.control.yaml cp tools/validation/validate_control.py control:/tmp/validate_control.py
 docker compose -f compose.control.yaml exec control bash -lc 'source /ws/install/setup.bash; python3 /tmp/validate_control.py'
-docker compose -f compose.control.yaml cp tools/validate_control_base.py control:/tmp/validate_control_base.py
+docker compose -f compose.control.yaml cp tools/validation/validate_control_base.py control:/tmp/validate_control_base.py
 docker compose -f compose.control.yaml exec control bash -lc 'source /ws/install/setup.bash; python3 /tmp/validate_control_base.py'
 ```
 
@@ -151,7 +155,7 @@ docker compose -f compose.control.yaml exec control bash -lc 'source /ws/install
 | RGB 相机 | Orbbec Astra Pro USB；`astra_rgb_node` | UVC RGB 已出图，约 30 fps |
 | 双目与 IMU | GS130WI MIPI；`gs130_vio_bridge` | 双目与 IMU 数据已发布，预留 VIO 接入 |
 | 立体深度与点云 | BPU `hobot_stereonet` + 适配节点；CPU SGBM 备用 | BPU 深度已实机运行；详见导航说明 |
-| 双臂舵机 | LewanSoul LX-15D / LD-27MG；UART1 | 真机通信排查暂停，尚未接入本文的 ros2_control 虚拟接口 |
+| 双臂舵机 | 德晟 DS-SY15A ×8；YB-SD15M USB | Mac 串口桥 + Docker ROS 实际反馈 + RViz 小步控制，软件零位保存在本机 |
 
 ### 原生启动
 
@@ -199,7 +203,7 @@ docker run -it --rm --privileged --network host \
 | GS130WI 同步线 LPWM | 37 |
 | 手柄 / Astra Pro | USB |
 
-8/10 脚是 UART1。当前电机使用软件 PWM；首次运行前需用 `tools/motor_test.py` 和 `tools/encoder_test.py` 核对电机/编码器归属、转向和里程计标定。
+8/10 脚是 UART1。当前电机使用软件 PWM；首次运行前需用 `tools/hardware/base/motor_test.py` 和 `tools/hardware/base/encoder_test.py` 核对电机/编码器归属、转向和里程计标定。
 
 Astra Pro 的 IR/深度仍有 SDK 与固件兼容问题；VIO 的 IMU 融合仍需相机—IMU 外参与时间偏移标定。感知 RViz、完整话题、标定与排查步骤见 [真机包说明](ros2_ws/src/robowheels/README.md) 和 [HARDWARE.md](HARDWARE.md)。
 
@@ -218,28 +222,24 @@ Astra Pro 的 IR/深度仍有 SDK 与固件兼容问题；VIO 的 IMU 融合仍�
 ## 目录结构
 
 ```text
-.
-├── README.md
-├── HARDWARE.md                   # 真机实测、接线与排查记录
-├── Dockerfile / compose.yaml     # RDK X5 真机环境
-├── compose.sim.yaml              # Gazebo 底盘物理仿真
-├── compose.control.yaml          # ros2_control + 浏览器 RViz
-├── docker/
-│   ├── cad.Dockerfile            # STEP 转换工具链
-│   └── sim/                      # 仿真与虚拟硬件镜像、入口脚本
-├── docs/simulation/              # 仿真及控制环境详细说明
-├── step/                        # 本地 STEP 原件；Git 中只保留说明
-├── tools/
-│   ├── cad/                      # CAD 检查与模型导出
-│   ├── validate_control*.py      # 装配、轨迹和底盘验证
-│   └── ...                       # 真机调试、Gazebo 检查工具
-├── third_party/hobot_gpio/       # GPIO 源码与上游声明
-├── pyproject.toml / uv.lock      # 真机 Python 依赖
-└── ros2_ws/src/
-    ├── robowheels/               # 真机节点、launch、配置与 udev
-    ├── robowheels_description/   # URDF/SDF、STL 与模型参数报告
-    └── robowheels_sim/           # Gazebo、控制器、RViz 与本地网页
+ros2_ws/src/
+  robowheels/                  # 实体运行：base / arms / sensors / perception / localization / planning
+  robowheels_description/      # 公用 URDF/SDF、网格和 CAD 导出报告
+  robowheels_rviz_plugins/     # 虚拟轨迹面板、实体八关节步进面板
+  robowheels_sim/              # Gazebo、mock ros2_control、仿真网页
+scripts/                       # Mac 常用启动/停止入口和 X5 遥测中继
+tools/                         # 开发与诊断工具
+  cad/                         # STEP 转换、几何分析和实体显示模型生成
+  hardware/{base,arms,cameras}/ # 会访问实体设备的诊断工具
+  validation/                  # 回归检查，区分离线、ROS集成与实体运动验证
+tests/                         # 不访问硬件的自动化测试
+docker/{hardware,sim}/         # 实体反馈显示环境与仿真镜像/入口
+compose*.yaml                  # 各运行模式的稳定启动入口
+docs/                          # 架构、开发、硬件、导航、仿真文档
+.local/                        # 不提交：本机配置、零位、令牌、环境、运行与验证记录
 ```
+
+开发入口见 [项目架构](docs/ARCHITECTURE.md) 和 [开发与提交约定](docs/DEVELOPMENT.md)。
 
 ## 仓库文件约定
 

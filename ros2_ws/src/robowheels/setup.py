@@ -17,9 +17,15 @@ setup(
             'config/gs130_vio.yaml',
             'config/stereo_pc.yaml',
         ]),
+        ('share/' + package_name + '/config/arms', [
+            'config/arms/servo_bridge.example.json',
+            'config/arms/servo_zero_offsets.example.json',
+        ]),
         ('share/' + package_name + '/config/rviz', [
             'config/rviz/perception.rviz',
             'config/rviz/rdk_debug.rviz',
+            'config/rviz/mac_astra.rviz',
+            'config/rviz/physical_arms.rviz',
         ]),
         ('share/' + package_name + '/launch', [
             'launch/motor.launch.py',
@@ -42,10 +48,14 @@ setup(
     zip_safe=True,
     maintainer='Wu Ruihao',
     maintainer_email='wuruihao629@outlook.com',
-    description='RoboWheels differential-drive base controller (RDK X5)',
+    description='RoboWheels differential base, stereo navigation, bus-servo arms and Astra sensors',
     license='MIT',
     entry_points={
         'console_scripts': [
+            'servo_feedback_bridge = robowheels.arms.ros_shadow:main',
+            'mac_servo_bridge = robowheels.arms.mac_bridge:main',
+            'host_image_receiver = robowheels.sensors.host_image_receiver:main',
+            'mac_astra_capture = robowheels.sensors.mac_astra_capture:main',
             'stereonet_adapter = robowheels.perception.stereonet_adapter:main',
             'orb_odometry_node = robowheels.localization.orb_odometry_node:main',
             'local_map_node = robowheels.perception.local_map_node:main',

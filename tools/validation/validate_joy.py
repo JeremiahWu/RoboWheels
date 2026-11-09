@@ -10,7 +10,7 @@ from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist
 
 def main():
-    root=Path(__file__).resolve().parents[1]
+    root=Path(__file__).resolve().parents[2]
     cfg=yaml.safe_load((root/'ros2_ws/src/robowheels/config/joy.yaml').read_text())['teleop_twist_joy_node']
     config=Path('/tmp/robowheels-teleop-test.yaml');config.write_text(yaml.safe_dump({'/**':cfg}))
     log=open('/tmp/robowheels-teleop-test.log','w')

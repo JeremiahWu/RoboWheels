@@ -1,0 +1,60 @@
+{
+  "port": "/dev/cu.usbserial-REPLACE",
+  "baud": 115200,
+  "max_step_raw": 40,
+  "max_offset_raw": 120,
+  "duration_ms": 2500,
+  "stale_seconds": 2.0,
+  "radians_per_raw": 0.0012783173232380348,
+  "angle_scale_note": "Provisional 300 degrees / 4096 units; not calibrated",
+  "joints": [
+    {
+      "id": 1,
+      "name": "right_shoulder_pitch",
+      "sign": 1,
+      "enabled": true
+    },
+    {
+      "id": 2,
+      "name": "right_shoulder_roll",
+      "sign": 1,
+      "enabled": true
+    },
+    {
+      "id": 3,
+      "name": "right_elbow_pitch",
+      "sign": 1,
+      "enabled": true
+    },
+    {
+      "id": 4,
+      "name": "right_wrist_pitch",
+      "sign": 1,
+      "enabled": true
+    },
+    {
+      "id": 5,
+      "name": "left_shoulder_pitch",
+      "sign": 1,
+      "enabled": true
+    },
+    {
+      "id": 6,
+      "name": "left_shoulder_roll",
+      "sign": 1,
+      "enabled": true
+    },
+    {
+      "id": 7,
+      "name": "left_elbow_pitch",
+      "sign": 1,
+      "enabled": true
+    },
+    {
+      "id": 8,
+      "name": "left_wrist_pitch",
+      "sign": 1,
+      "enabled": true
+    }
+  ]
+}
